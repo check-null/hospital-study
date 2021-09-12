@@ -2,14 +2,17 @@ package com.sub.model.hosp;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.sub.model.base.BaseEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ApiModel(description = "医院设置")
 @TableName("hospital_set")
-public class HospitalSet  {
+public class HospitalSet  extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
