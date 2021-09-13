@@ -69,7 +69,7 @@ public class HospitalSetController {
     @ApiOperation("添加")
     @PostMapping("save")
     public Result<Boolean> save(@RequestBody HospitalSet hospitalSet) {
-        // 0:no 1:ok
+        // 状态 0:no 1:ok
         hospitalSet.setStatus(1);
         // md5签名加密
         Random random = new Random();
