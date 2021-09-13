@@ -40,7 +40,7 @@ public class HospitalSetController {
     }
 
     @ApiOperation("分页")
-    @PostMapping("page/{current}/{limit}")
+    @PostMapping("/page/{current}/{limit}")
     public Result<IPage<HospitalSet>> page(@PathVariable long current,
                                            @PathVariable long limit,
                                            @RequestBody(required = false) HospitalSetQueryVo hospitalSetQueryVo) {
@@ -49,16 +49,17 @@ public class HospitalSetController {
         //构建条件
         QueryWrapper<HospitalSet> wrapper = new QueryWrapper<>();
         //医院名称
-        String hosname = hospitalSetQueryVo.getHosname();
-        //医院编号
-        String hoscode = hospitalSetQueryVo.getHoscode();
-        if (!StringUtils.isEmpty(hosname)) {
-            wrapper.like("hosname", hospitalSetQueryVo.getHosname());
+        if (hospitalSetQueryVo != null) {
+            String hosname = hospitalSetQueryVo.getHosname();
+            //医院编号
+            String hoscode = hospitalSetQueryVo.getHoscode();
+            if (!StringUtils.isEmpty(hosname)) {
+                wrapper.like("hosname", hospitalSetQueryVo.getHosname());
+            }
+            if (!StringUtils.isEmpty(hoscode)) {
+                wrapper.eq("hoscode", hospitalSetQueryVo.getHoscode());
+            }
         }
-        if (!StringUtils.isEmpty(hoscode)) {
-            wrapper.eq("hoscode", hospitalSetQueryVo.getHoscode());
-        }
-
         //调用方法实现分页查询
         IPage<HospitalSet> pageHospitalSet = hospitalSetService.page(page, wrapper);
 
@@ -67,7 +68,7 @@ public class HospitalSetController {
     }
 
     @ApiOperation("添加")
-    @PostMapping("save")
+    @PostMapping("/save")
     public Result<Boolean> save(@RequestBody HospitalSet hospitalSet) {
         // 状态 0:no 1:ok
         hospitalSet.setStatus(1);
