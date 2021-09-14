@@ -5,12 +5,11 @@ import com.sub.common.result.Result;
 import com.sub.model.cmn.Dict;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Api(tags = "数据字典")
@@ -24,7 +23,18 @@ public class DictController {
     @ApiOperation("节点树")
     @GetMapping("/find-child/{id}")
     public Result<List<Dict>> findChildData(@PathVariable Long id) {
-       List<Dict> list = dictService.findChild(id);
+        List<Dict> list = dictService.findChild(id);
         return Result.ok(list);
+    }
+
+    @GetMapping("/export")
+    public void exportDict(HttpServletResponse response) {
+        dictService.exportDict(response);
+    }
+
+    @PostMapping("/import")
+    public Result<Boolean> importDict(MultipartFile file) {
+        dictService.importDict(file);
+        return Result.ok();
     }
 }
