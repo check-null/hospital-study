@@ -1,4 +1,4 @@
-package com.sub.manager.util;
+package com.sub.common.utils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,7 +22,7 @@ public final class HttpUtil {
 
 	/**
 	 * post 方式发送http请求.
-	 *
+	 * 
 	 * @param strUrl
 	 * @param reqData
 	 * @return
@@ -33,7 +33,7 @@ public final class HttpUtil {
 
 	/**
 	 * get方式发送http请求.
-	 *
+	 * 
 	 * @param strUrl
 	 * @return
 	 */
@@ -68,10 +68,10 @@ public final class HttpUtil {
 			BufferedReader in = new BufferedReader(new InputStreamReader(httpcon.getInputStream(), StandardCharsets.UTF_8));
 			String inputLine;
 			StringBuilder bankXmlBuffer = new StringBuilder();
-			while ((inputLine = in.readLine()) != null) {
-			    bankXmlBuffer.append(inputLine);
-			}
-			in.close();
+			while ((inputLine = in.readLine()) != null) {  
+			    bankXmlBuffer.append(inputLine);  
+			}  
+			in.close();  
 			httpcon.disconnect();
 			return bankXmlBuffer.toString().getBytes();
 		} catch (Exception ex) {
@@ -79,10 +79,10 @@ public final class HttpUtil {
 			return null;
 		}
 	}
-
+	
 	/**
 	 * 从输入流中读取数据
-	 *
+	 * 
 	 * @param inStream
 	 * @return
 	 * @throws Exception
@@ -94,7 +94,8 @@ public final class HttpUtil {
 		while ((len = inStream.read(buffer)) != -1) {
 			outStream.write(buffer, 0, len);
 		}
-		byte[] data = outStream.toByteArray();// 网页的二进制数据
+		// 网页的二进制数据
+		byte[] data = outStream.toByteArray();
 		outStream.close();
 		inStream.close();
 		return data;

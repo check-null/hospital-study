@@ -7,6 +7,7 @@
         <module>common</module>
         <module>model</module>
         <module>service</module>
+        <module>manager</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -28,7 +29,7 @@
         <mysql.version>8.0.15</mysql.version>
         <swagger.version>2.7.0</swagger.version>
         <jwt.version>0.7.0</jwt.version>
-        <fastjson.version>1.2.29</fastjson.version>
+        <fastjson.version>1.2.78</fastjson.version>
         <httpclient.version>4.5.1</httpclient.version>
         <easyexcel.version>2.2.1</easyexcel.version>
         <aliyun.version>4.1.1</aliyun.version>

@@ -1,9 +1,10 @@
-package com.sub.manager.util;
+package com.sub.common.helper;
 
 import com.alibaba.fastjson.JSONObject;
+import com.sub.common.utils.HttpUtil;
+import com.sub.common.utils.MD5;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,39 +13,38 @@ import java.util.TreeMap;
 @Slf4j
 public class HttpRequestHelper {
 
-    //private final static String signKey = "09c1ff67d1ae4999e137f34b0dff1046";
-
     public static void main(String[] args) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("d", "4");
         paramMap.put("b", "2");
         paramMap.put("c", "3");
         paramMap.put("a", "1");
-        log.info(getSign(paramMap, ""));
+        paramMap.put("timestamp", getTimestamp());
+        log.info(getSign(paramMap, "111111111"));
     }
 
     /**
-     *
      * @param paramMap
      * @return
      */
     public static Map<String, Object> switchMap(Map<String, String[]> paramMap) {
-        Map<String, Object> resultMap = new HashMap<>();
-        for (Map.Entry<String, String[]> param : paramMap.entrySet()) {
+        Map<String, Object> resultMap = new HashMap<>(paramMap.size());
+        paramMap.forEach((k, v) -> resultMap.put(k,v[0]));
+        /*for (Map.Entry<String, String[]> param : paramMap.entrySet()) {
             resultMap.put(param.getKey(), param.getValue()[0]);
-        }
+        }*/
         return resultMap;
     }
 
     /**
      * 请求数据获取签名
+     *
      * @param paramMap
+     * @param signKey
      * @return
      */
     public static String getSign(Map<String, Object> paramMap, String signKey) {
-        if(paramMap.containsKey("sign")) {
-            paramMap.remove("sign");
-        }
+        paramMap.remove("sign");
         TreeMap<String, Object> sorted = new TreeMap<>(paramMap);
         StringBuilder str = new StringBuilder();
         for (Map.Entry<String, Object> param : sorted.entrySet()) {
@@ -59,13 +59,15 @@ public class HttpRequestHelper {
 
     /**
      * 签名校验
+     *
      * @param paramMap
+     * @param signKey
      * @return
      */
     public static boolean isSignEquals(Map<String, Object> paramMap, String signKey) {
-        String sign = (String)paramMap.get("sign");
+        String sign = (String) paramMap.get("sign");
         String md5Str = getSign(paramMap, signKey);
-        if(!sign.equals(md5Str)) {
+        if (!sign.equals(md5Str)) {
             return false;
         }
         return true;
@@ -73,6 +75,7 @@ public class HttpRequestHelper {
 
     /**
      * 获取时间戳
+     *
      * @return
      */
     public static long getTimestamp() {
@@ -81,11 +84,12 @@ public class HttpRequestHelper {
 
     /**
      * 封装同步请求
+     *
      * @param paramMap
      * @param url
      * @return
      */
-    public static JSONObject sendRequest(Map<String, Object> paramMap, String url){
+    public static JSONObject sendRequest(Map<String, Object> paramMap, String url) {
         String result = "";
         try {
             //封装post参数
@@ -95,8 +99,8 @@ public class HttpRequestHelper {
                         .append(param.getValue()).append("&");
             }
             log.info(String.format("--> 发送请求：post data %1s", postdata));
-            byte[] reqData = postdata.toString().getBytes(StandardCharsets.UTF_8);
-            byte[] respdata = HttpUtil.doPost(url,reqData);
+            byte[] reqData = postdata.toString().getBytes("utf-8");
+            byte[] respdata = HttpUtil.doPost(url, reqData);
             result = new String(respdata);
             log.info(String.format("--> 应答结果：result data %1s", result));
         } catch (Exception ex) {
