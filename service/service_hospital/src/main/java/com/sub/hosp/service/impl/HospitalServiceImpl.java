@@ -37,4 +37,9 @@ public class HospitalServiceImpl implements HospitalService {
         hospital.setUpdateTime(new Date());
         hospitalRepository.save(hospital);
     }
+
+    @Override
+    public Hospital getByHoscode(String hoscode) {
+        return hospitalRepository.getHospitalByHoscode(hoscode);
+    }
 }

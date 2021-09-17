@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -27,10 +28,10 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping
 public class ApiController extends BaseController {
 
-	@Autowired
+	@Resource
 	private ApiService apiService;
 
-	@Autowired
+	@Resource
 	private HospitalSetMapper hospitalSetMapper;
 
 	@RequestMapping("/hospitalSet/index")
