@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.sub.hosp.repository.DepartmentRepository;
 import com.sub.hosp.service.DepartmentService;
 import com.sub.model.hosp.Department;
+import com.sub.vo.hosp.DepartmentQueryVo;
+import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,5 +41,20 @@ public class DepartmentServiceImpl implements DepartmentService {
             department.setIsDeleted(0);
             departmentRepository.save(department);
         }
+    }
+
+    @Override
+    public Page<Department> findPageDepartment(int page, int limit, DepartmentQueryVo queryVo) {
+        Pageable of = PageRequest.of(page - 1, limit);
+        Department department = new Department();
+        BeanUtils.copyProperties(queryVo, department);
+        department.setIsDeleted(0);
+
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase(true);
+        Example<Department> example = Example.of(department, matcher);
+
+        return departmentRepository.findAll(example, of);
     }
 }

@@ -8,7 +8,11 @@ import com.sub.common.utils.MD5;
 import com.sub.hosp.service.DepartmentService;
 import com.sub.hosp.service.HospitalService;
 import com.sub.hosp.service.HospitalSetService;
+import com.sub.model.hosp.Department;
 import com.sub.model.hosp.Hospital;
+import com.sub.vo.hosp.DepartmentQueryVo;
+import org.springframework.data.domain.Page;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,6 +36,46 @@ public class ApiController {
 
     @Resource
     DepartmentService departmentService;
+
+    @PostMapping("/department/remove")
+    public Result removeDepartment(HttpServletRequest request) {
+        Map<String, String[]> map = request.getParameterMap();
+        Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
+
+        String hoscode = (String) paramMap.get("hoscode");
+        String depcode = (String) paramMap.get("depcode");
+
+        
+
+        return Result.ok();
+    }
+
+    @PostMapping("/department/list")
+    public Result findDepartment(HttpServletRequest request) {
+        Map<String, String[]> map = request.getParameterMap();
+        Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
+
+        String hoscode = (String) paramMap.get("hoscode");
+        String getPage = (String) paramMap.get("page");
+        String getLimit = (String) paramMap.get("limit");
+
+        int page = StringUtils.isEmpty(hoscode) ? 1 : Integer.parseInt(getPage);
+        int limit = StringUtils.isEmpty(getLimit) ? 1 : Integer.parseInt(getLimit);
+
+        String sign = (String) paramMap.get("sign");
+        String key = hospitalSetService.getSignKey(hoscode);
+        String signKeyMD5 = MD5.encrypt(key);
+
+        if (!sign.equals(signKeyMD5)) {
+            throw new YyghException(ResultCodeEnum.SIGN_ERROR);
+        }
+
+        DepartmentQueryVo queryVo = new DepartmentQueryVo();
+        queryVo.setHoscode(hoscode);
+        Page<Department> pageMode = departmentService.findPageDepartment(page, limit, queryVo);
+
+        return Result.ok(pageMode);
+    }
 
     @PostMapping("/saveDepartment")
     public Result<Boolean> saveDepartment(HttpServletRequest request) {
