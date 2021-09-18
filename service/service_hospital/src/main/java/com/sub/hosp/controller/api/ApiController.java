@@ -8,6 +8,7 @@ import com.sub.common.utils.MD5;
 import com.sub.hosp.service.DepartmentService;
 import com.sub.hosp.service.HospitalService;
 import com.sub.hosp.service.HospitalSetService;
+import com.sub.hosp.service.ScheduleService;
 import com.sub.model.hosp.Department;
 import com.sub.model.hosp.Hospital;
 import com.sub.vo.hosp.DepartmentQueryVo;
@@ -37,21 +38,45 @@ public class ApiController {
     @Resource
     DepartmentService departmentService;
 
+    @Resource
+    ScheduleService scheduleService;
+
+    @PostMapping("/schedule/list")
+    public Result findSchedule(HttpServletRequest request) {
+        Map<String, String[]> map = request.getParameterMap();
+        Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
+
+
+
+        return Result.ok();
+    }
+
+    @PostMapping("/saveSchedule")
+    public Result<Boolean> saveSchedule(HttpServletRequest request) {
+        Map<String, String[]> map = request.getParameterMap();
+        Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
+
+        // todo 签名校验
+
+        scheduleService.save(paramMap);
+        return Result.ok();
+    }
+
     @PostMapping("/department/remove")
-    public Result removeDepartment(HttpServletRequest request) {
+    public Result<Boolean> removeDepartment(HttpServletRequest request) {
         Map<String, String[]> map = request.getParameterMap();
         Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
 
         String hoscode = (String) paramMap.get("hoscode");
         String depcode = (String) paramMap.get("depcode");
 
-        
+        departmentService.remove(hoscode, depcode);
 
         return Result.ok();
     }
 
     @PostMapping("/department/list")
-    public Result findDepartment(HttpServletRequest request) {
+    public Result<Page<Department>> findDepartment(HttpServletRequest request) {
         Map<String, String[]> map = request.getParameterMap();
         Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
 
