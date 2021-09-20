@@ -11,7 +11,9 @@ import com.sub.hosp.service.HospitalSetService;
 import com.sub.hosp.service.ScheduleService;
 import com.sub.model.hosp.Department;
 import com.sub.model.hosp.Hospital;
+import com.sub.model.hosp.Schedule;
 import com.sub.vo.hosp.DepartmentQueryVo;
+import com.sub.vo.hosp.ScheduleQueryVo;
 import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,14 +43,41 @@ public class ApiController {
     @Resource
     ScheduleService scheduleService;
 
-    @PostMapping("/schedule/list")
-    public Result findSchedule(HttpServletRequest request) {
+    @PostMapping("/schedule/remove")
+    public Result<Boolean> removeSchedule(HttpServletRequest request) {
         Map<String, String[]> map = request.getParameterMap();
         Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
 
+        String hoscode = (String) paramMap.get("hoscode");
+        String hosScheduleId = (String) paramMap.get("hosScheduleId");
 
+
+        scheduleService.remove(hoscode, hosScheduleId);
 
         return Result.ok();
+    }
+
+    @PostMapping("/schedule/list")
+    public Result<Page<Schedule>> findSchedule(HttpServletRequest request) {
+        Map<String, String[]> map = request.getParameterMap();
+        Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
+
+        String pageStr = (String) paramMap.get("page");
+        String limitStr = (String) paramMap.get("limit");
+
+        int page = StringUtils.isEmpty(pageStr) ? 1 : Integer.parseInt(pageStr);
+        int limit = StringUtils.isEmpty(limitStr) ? 1 : Integer.parseInt(limitStr);
+        // 医院编号
+        String hoscode = (String) paramMap.get("hoscode");
+        // 科室编号
+        String depcode = (String) paramMap.get("depcode");
+
+        ScheduleQueryVo queryVo = new ScheduleQueryVo();
+        queryVo.setHoscode(hoscode);
+        queryVo.setDepcode(depcode);
+        Page<Schedule> pageMode = scheduleService.findPageDepartment(page, limit, queryVo);
+
+        return Result.ok(pageMode);
     }
 
     @PostMapping("/saveSchedule")
@@ -56,7 +85,14 @@ public class ApiController {
         Map<String, String[]> map = request.getParameterMap();
         Map<String, Object> paramMap = HttpRequestHelper.switchMap(map);
 
-        // todo 签名校验
+        String hoscode = (String) paramMap.get("hoscode");
+        String sign = (String) paramMap.get("sign");
+        String key = hospitalSetService.getSignKey(hoscode);
+        String signKeyMD5 = MD5.encrypt(key);
+
+        if (!sign.equals(signKeyMD5)) {
+            throw new YyghException(ResultCodeEnum.SIGN_ERROR);
+        }
 
         scheduleService.save(paramMap);
         return Result.ok();
@@ -69,6 +105,8 @@ public class ApiController {
 
         String hoscode = (String) paramMap.get("hoscode");
         String depcode = (String) paramMap.get("depcode");
+
+        // todo 签名
 
         departmentService.remove(hoscode, depcode);
 

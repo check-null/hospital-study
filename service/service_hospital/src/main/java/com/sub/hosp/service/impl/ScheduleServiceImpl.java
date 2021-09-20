@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.sub.hosp.repository.ScheduleRepository;
 import com.sub.hosp.service.ScheduleService;
 import com.sub.model.hosp.Schedule;
+import com.sub.vo.hosp.ScheduleQueryVo;
+import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,6 +41,31 @@ public class ScheduleServiceImpl implements ScheduleService {
             schedule.setIsDeleted(0);
             schedule.setStatus(1);
             scheduleRepository.save(schedule);
+        }
+    }
+
+    @Override
+    public Page<Schedule> findPageDepartment(int page, int limit, ScheduleQueryVo queryVo) {
+
+        Pageable of = PageRequest.of(page - 1, limit);
+        Schedule schedule = new Schedule();
+        BeanUtils.copyProperties(queryVo, schedule);
+        schedule.setIsDeleted(0);
+        schedule.setStatus(1);
+
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase(true);
+        Example<Schedule> example = Example.of(schedule, matcher);
+
+        return scheduleRepository.findAll(example, of);
+    }
+
+    @Override
+    public void remove(String hoscode, String hosScheduleId) {
+        Schedule schedule = scheduleRepository.getByHoscodeAndHosScheduleId(hoscode, hosScheduleId);
+        if (schedule != null) {
+            scheduleRepository.deleteById(schedule.getId());
         }
     }
 }

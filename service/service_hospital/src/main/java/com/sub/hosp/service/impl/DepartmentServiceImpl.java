@@ -63,9 +63,6 @@ public class DepartmentServiceImpl implements DepartmentService {
         Department department = departmentRepository.getByHoscodeAndDepcode(hoscode, depcode);
         if (department != null) {
             departmentRepository.deleteById(department.getId());
-            System.err.println(department);
-        } else {
-            System.err.println("else");
         }
     }
 }
