@@ -10,6 +10,7 @@ import com.sub.model.cmn.Dict;
 import com.sub.vo.cmn.DictEeVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -65,6 +66,24 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
                     .doRead();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String getDictName(String dictCode, String value) {
+        QueryWrapper<Dict> wrapper = new QueryWrapper<>();
+        // 判断是否有dictCode
+        if (StringUtils.isEmpty(dictCode)) {
+            wrapper.eq("value", value);
+            return baseMapper.selectOne(wrapper).getName();
+        } else {
+            wrapper.eq("dict_code", dictCode);
+            Dict dict = baseMapper.selectOne(wrapper);
+            // 根据parent_id 和 value 查询
+            QueryWrapper<Dict> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("parent_id", dict.getParentId());
+            queryWrapper.eq("value", value);
+            return baseMapper.selectOne(queryWrapper).getName();
         }
     }
 

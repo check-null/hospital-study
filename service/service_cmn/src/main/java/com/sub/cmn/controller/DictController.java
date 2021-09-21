@@ -20,6 +20,21 @@ public class DictController {
     @Resource
     DictService dictService;
 
+    @GetMapping("/getName/{dictCode}/{value}")
+    public String getName(@PathVariable String dictCode,
+                          @PathVariable String value) {
+
+        return dictService.getDictName(dictCode, value);
+    }
+
+    @GetMapping("/getName/{value}")
+    public String getName(@PathVariable String value) {
+
+        return dictService.getDictName("", value);
+    }
+
+
+
     @ApiOperation("节点树")
     @GetMapping("/find-child/{id}")
     public Result<List<Dict>> findChildData(@PathVariable Long id) {
@@ -27,11 +42,13 @@ public class DictController {
         return Result.ok(list);
     }
 
+    @ApiOperation("导出excel")
     @GetMapping("/export")
     public void exportDict(HttpServletResponse response) {
         dictService.exportDict(response);
     }
 
+    @ApiOperation("导入excel")
     @PostMapping("/import")
     public Result<Boolean> importDict(MultipartFile file) {
         dictService.importDict(file);
