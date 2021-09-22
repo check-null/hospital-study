@@ -81,7 +81,7 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
             Dict dict = baseMapper.selectOne(wrapper);
             // 根据parent_id 和 value 查询
             QueryWrapper<Dict> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("parent_id", dict.getParentId());
+            queryWrapper.eq("parent_id", dict.getId());
             queryWrapper.eq("value", value);
             return baseMapper.selectOne(queryWrapper).getName();
         }
