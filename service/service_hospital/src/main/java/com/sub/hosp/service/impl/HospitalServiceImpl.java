@@ -2,6 +2,7 @@ package com.sub.hosp.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.sub.cmn.client.DictFeignClient;
 import com.sub.hosp.repository.HospitalRepository;
 import com.sub.hosp.service.HospitalService;
 import com.sub.model.hosp.Department;
@@ -21,6 +22,9 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Resource
     private HospitalRepository hospitalRepository;
+
+    @Resource
+    private DictFeignClient dictFeignClient;
 
     @Override
     public void save(Map<String, Object> paramMap) {
@@ -61,7 +65,17 @@ public class HospitalServiceImpl implements HospitalService {
                 .withIgnoreCase(true);
         Example<Hospital> example = Example.of(hospital, matcher);
 
-        return hospitalRepository.findAll(example, of);
+        Page<Hospital> all = hospitalRepository.findAll(example, of);
+        all.getContent().forEach(hosp -> {
+            String hostype = dictFeignClient.getName("Hostype", hosp.getHostype());
+            String province = dictFeignClient.getName(hosp.getProvinceCode());
+            String city = dictFeignClient.getName(hosp.getCityCode());
+            String district = dictFeignClient.getName(hosp.getDistrictCode());
+
+            hosp.getParam().put("fullAddress", province + city + district);
+            hosp.getParam().put("hostypeString", hostype);
+        });
+        return all;
     }
 
 }

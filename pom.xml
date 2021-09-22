@@ -8,6 +8,7 @@
         <module>model</module>
         <module>service</module>
         <module>manager</module>
+        <module>service_client</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
