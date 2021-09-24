@@ -20,6 +20,12 @@ public class DictController {
     @Resource
     DictService dictService;
 
+    @GetMapping("/findByDictCode/{dictCode}")
+    public Result<List<Dict>> findByDictCode(@PathVariable String dictCode) {
+        List<Dict> list = dictService.findByDictCode(dictCode);
+        return Result.ok(list);
+    }
+
     @GetMapping("/getName/{dictCode}/{value}")
     public String getName(@PathVariable String dictCode,
                           @PathVariable String value) {
@@ -32,8 +38,6 @@ public class DictController {
 
         return dictService.getDictName("", value);
     }
-
-
 
     @ApiOperation("节点树")
     @GetMapping("/find-child/{id}")
