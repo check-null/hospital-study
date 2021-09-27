@@ -40,7 +40,7 @@ public class DictController {
     }
 
     @ApiOperation("节点树")
-    @GetMapping("/find-child/{id}")
+    @GetMapping("/findChildData/{id}")
     public Result<List<Dict>> findChildData(@PathVariable Long id) {
         List<Dict> list = dictService.findChild(id);
         return Result.ok(list);
