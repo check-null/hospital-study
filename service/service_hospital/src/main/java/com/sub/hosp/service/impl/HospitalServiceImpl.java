@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.lang.reflect.Type;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -66,16 +67,35 @@ public class HospitalServiceImpl implements HospitalService {
         Example<Hospital> example = Example.of(hospital, matcher);
 
         Page<Hospital> all = hospitalRepository.findAll(example, of);
-        all.getContent().forEach(hosp -> {
-            String hostype = dictFeignClient.getName("Hostype", hosp.getHostype());
-            String province = dictFeignClient.getName(hosp.getProvinceCode());
-            String city = dictFeignClient.getName(hosp.getCityCode());
-            String district = dictFeignClient.getName(hosp.getDistrictCode());
-
-            hosp.getParam().put("fullAddress", province + city + district);
-            hosp.getParam().put("hostypeString", hostype);
-        });
+        all.getContent().forEach(this::setHospitalHosType);
         return all;
+    }
+
+    @Override
+    public void updateStatus(String id, Integer status) {
+        Hospital hospital = hospitalRepository.findById(id).get();
+        hospital.setStatus(status);
+        hospital.setUpdateTime(new Date());
+        hospitalRepository.save(hospital);
+    }
+
+    @Override
+    public Map<String, Object> getHospById(String id) {
+        Map<String, Object> map = new HashMap<>(16);
+        Hospital hosp = hospitalRepository.findById(id).get();
+
+        setHospitalHosType(hosp);
+        return null;
+    }
+
+    private void setHospitalHosType(Hospital hosp) {
+        String hostype = dictFeignClient.getName("Hostype", hosp.getHostype());
+        String province = dictFeignClient.getName(hosp.getProvinceCode());
+        String city = dictFeignClient.getName(hosp.getCityCode());
+        String district = dictFeignClient.getName(hosp.getDistrictCode());
+
+        hosp.getParam().put("fullAddress", province + city + district);
+        hosp.getParam().put("hostypeString", hostype);
     }
 
 }
