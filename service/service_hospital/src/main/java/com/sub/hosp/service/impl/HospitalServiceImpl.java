@@ -85,7 +85,13 @@ public class HospitalServiceImpl implements HospitalService {
         Hospital hosp = hospitalRepository.findById(id).get();
 
         setHospitalHosType(hosp);
-        return null;
+        // 医院基本信息
+        map.put("hospital", hosp);
+        // 预约规则,从里面提出来
+        map.put("bookingRule", hosp.getBookingRule());
+        // 已经提出来了,不需要重复显示
+        hosp.setBookingRule(null);
+        return map;
     }
 
     private void setHospitalHosType(Hospital hosp) {
