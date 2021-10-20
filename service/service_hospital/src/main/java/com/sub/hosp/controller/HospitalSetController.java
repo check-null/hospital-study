@@ -10,6 +10,7 @@ import com.sub.model.hosp.HospitalSet;
 import com.sub.vo.hosp.HospitalSetQueryVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -102,8 +103,13 @@ public class HospitalSetController {
         return b ? Result.ok() : Result.fail();
     }
 
+    @ApiOperation("更新上线状态")
     @PostMapping("/lock/{id}/{status}")
-    public Result<Boolean> lock(@PathVariable Long id, @PathVariable Integer status) {
+    public Result<Boolean> lock(
+            @ApiParam(name = "id", value = "医院id", required = true)
+            @PathVariable Long id,
+            @ApiParam(name = "status", value = "状态(0: 未上线, 1: 已上线)", required = true)
+            @PathVariable Integer status) {
         HospitalSet data = hospitalSetService.getById(id);
         data.setStatus(status);
 
