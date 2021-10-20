@@ -206,7 +206,7 @@ public class ApiController {
         }
         String logoData = (String) paramMap.get("logoData");
         logoData = logoData.replaceAll(" ", "+");
-        paramMap.put("logData", logoData);
+        paramMap.put("logoData", logoData);
         hospitalService.save(paramMap);
         return Result.ok();
     }

@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.sub.cmn.client.DictFeignClient;
 import com.sub.hosp.repository.HospitalRepository;
 import com.sub.hosp.service.HospitalService;
-import com.sub.model.hosp.Department;
 import com.sub.model.hosp.Hospital;
 import com.sub.vo.hosp.HospitalQueryVo;
 import org.springframework.beans.BeanUtils;
@@ -13,7 +12,6 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,9 +32,8 @@ public class HospitalServiceImpl implements HospitalService {
 
         String hoscode = hospital.getHoscode();
         Hospital hosp = hospitalRepository.getHospitalByHoscode(hoscode);
-
         // 不存在则添加 反之修改
-        if (hosp != null) {
+        if (hosp == null) {
             hospital.setStatus(0);
             hospital.setCreateTime(new Date());
         } else {

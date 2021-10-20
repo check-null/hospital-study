@@ -33,7 +33,8 @@ public class HospitalController {
 
     @ApiOperation("更新医院上线状态")
     @GetMapping("/updateHospStatus/{id}/{status}")
-    public Result<Boolean> updateHospStatus(@PathVariable String id, @PathVariable Integer status) {
+    public Result<Boolean> updateHospStatus(@PathVariable String id,
+                                            @PathVariable Integer status) {
         hospitalService.updateStatus(id, status);
         return Result.ok();
     }
