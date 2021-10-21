@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  * @author Europa
@@ -27,7 +28,7 @@ public class HospitalController {
     public Result<Page<Hospital>> listHosp(@PathVariable Integer page,
                                            @PathVariable Integer limit,
                                            HospitalQueryVo queryVo) {
-        Page<Hospital> pageModel =  hospitalService.selectHospPage(page, limit, queryVo);
+        Page<Hospital> pageModel = hospitalService.selectHospPage(page, limit, queryVo);
         return Result.ok(pageModel);
     }
 
@@ -39,5 +40,10 @@ public class HospitalController {
         return Result.ok();
     }
 
-
+    @ApiOperation("医院详情信息")
+    @GetMapping("/showHospDetail/{id}")
+    public Result<Map<String, Object>> showHospDetail(@PathVariable String id) {
+        Map<String, Object> map = hospitalService.getHospById(id);
+        return Result.ok(map);
+    }
 }
