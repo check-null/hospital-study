@@ -5,13 +5,17 @@ import com.sub.hosp.repository.DepartmentRepository;
 import com.sub.hosp.service.DepartmentService;
 import com.sub.model.hosp.Department;
 import com.sub.vo.hosp.DepartmentQueryVo;
+import com.sub.vo.hosp.DepartmentVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Europa
@@ -64,5 +68,43 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (department != null) {
             departmentRepository.deleteById(department.getId());
         }
+    }
+
+    /**
+     * 所有科室(树状结构)
+     *
+     * @param hospcode 科室代码
+     * @return List<DepartmentVo>
+     */
+    @Override
+    public List<DepartmentVo> findDeptTree(String hospcode) {
+        List<DepartmentVo> list = new ArrayList<>();
+        // 封装查询条件
+        Department department = new Department();
+        department.setHoscode(hospcode);
+        Example<Department> of = Example.of(department);
+        // 查询所有科室列表
+        List<Department> all = departmentRepository.findAll(of);
+        // 根据大科室bigcode分组,获得每个大科室下的子科室
+        Map<String, List<Department>> collect = all.stream().collect(Collectors.groupingBy(Department::getBigcode));
+
+        collect.forEach((k, v) -> {
+            // 封装大科室 代码和名字
+            DepartmentVo vo = new DepartmentVo();
+            vo.setDepcode(k);
+            vo.setDepname(v.get(0).getDepname());
+            // 封装小科室
+            List<DepartmentVo> children = new ArrayList<>(v.size());
+            v.forEach(dept -> {
+                DepartmentVo deptVo = new DepartmentVo();
+                deptVo.setDepcode(dept.getDepcode());
+                deptVo.setDepname(dept.getDepname());
+                children.add(deptVo);
+            });
+            // 封装大科室下的小科室
+            vo.setChildren(children);
+            list.add(vo);
+        });
+        return list;
     }
 }
