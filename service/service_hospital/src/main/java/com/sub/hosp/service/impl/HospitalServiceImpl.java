@@ -91,6 +91,12 @@ public class HospitalServiceImpl implements HospitalService {
         return map;
     }
 
+    @Override
+    public String getHospName(String hoscode) {
+        Hospital hospital = hospitalRepository.getHospitalByHoscode(hoscode);
+        return hospital != null ? hospital.getHosname() : null;
+    }
+
     private void setHospitalHosType(Hospital hosp) {
         String hostype = dictFeignClient.getName("Hostype", hosp.getHostype());
         String province = dictFeignClient.getName(hosp.getProvinceCode());

@@ -2,10 +2,13 @@ package com.sub.hosp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.sub.hosp.repository.ScheduleRepository;
+import com.sub.hosp.service.HospitalService;
 import com.sub.hosp.service.ScheduleService;
-import com.sub.model.hosp.BookingRule;
 import com.sub.model.hosp.Schedule;
+import com.sub.vo.hosp.BookingScheduleRuleVo;
 import com.sub.vo.hosp.ScheduleQueryVo;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +33,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Resource
     MongoTemplate mongoTemplate;
+
+    @Resource
+    HospitalService hospitalService;
 
     @Override
     public void save(Map<String, Object> paramMap) {
@@ -79,7 +86,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public Map<String, Object> getRuleSchedule(Integer page, Integer limit, String hoscode, String depcode) {
-        // MongoDB的聚合操作有空去学习一下
+        // MongoDB的聚合操作有空去学习一下, 此段代码在p95
         Criteria criteria = Criteria.where("hoscode")
                 .is(hoscode)
                 .and("depcode")
@@ -88,9 +95,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         // 条件匹配
         MatchOperation match = Aggregation.match(criteria);
         // 分组
-        GroupOperation groupOperation = Aggregation.group("workData")
-                .first("workData")
-                .as("workData")
+        GroupOperation groupOperation = Aggregation.group("workDate")
+                .first("workDate")
+                .as("workDate")
                 .count()
                 .as("docCount")
                 .sum("reservedNumber")
@@ -98,17 +105,73 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .sum("availableNumber")
                 .as("availableNumber");
         // 排序
-        SortOperation sort = Aggregation.sort(Sort.Direction.DESC, "workData");
+        SortOperation sort = Aggregation.sort(Sort.Direction.DESC, "workDate");
         // 翻页 虽然这个方法过期了,但实际上只是把int换成了long而已
         SkipOperation skip = Aggregation.skip((page - 1) * limit);
         // size
         LimitOperation size = Aggregation.limit(limit);
-
+        // 根据工作日期workDate分组
         Aggregation agg = Aggregation.newAggregation(match, groupOperation, sort, skip, size);
+        // 组装完成后,最终交给MongoDB处理
+        AggregationResults<BookingScheduleRuleVo> rules = mongoTemplate.aggregate(agg, Schedule.class, BookingScheduleRuleVo.class);
+        List<BookingScheduleRuleVo> list = rules.getMappedResults();
+        // 分组查询的记录总数
+        Aggregation totalAgg = Aggregation.newAggregation(Aggregation.match(criteria), Aggregation.group("workDate"));
+        AggregationResults<BookingScheduleRuleVo> totalAggResult = mongoTemplate.aggregate(totalAgg, Schedule.class, BookingScheduleRuleVo.class);
+        int total = totalAggResult.getMappedResults().size();
+        // 把对应的日期换成星期
+        list.forEach(vo -> {
+            Date workDate = vo.getWorkDate();
+            String dayOfWeek = getDayOfWeek(new DateTime(workDate));
+            vo.setDayOfWeek(dayOfWeek);
+        });
 
-        AggregationResults<BookingRule> rules = mongoTemplate.aggregate(agg, Schedule.class, BookingRule.class);
-        List<BookingRule> list = rules.getMappedResults();
+        // 获得医院名称
+        String hospName =  hospitalService.getHospName(hoscode);
+        HashMap<String, String> hashMap = new HashMap<>(16);
+        hashMap.put("hosname", hospName);
 
-        return null;
+        // 最终返回组装完成的数据
+        HashMap<String, Object> map = new HashMap<>(16);
+        map.put("bookingScheduleRuleList", list);
+        map.put("total", total);
+        map.put("baseMap", hashMap);
+        return map;
     }
+
+    /**
+     * 根据日期获取周几数据
+     *
+     * @param dateTime DateTIme
+     * @return 星期
+     */
+    private String getDayOfWeek(DateTime dateTime) {
+        String dayOfWeek = "";
+        switch (dateTime.getDayOfWeek()) {
+            case DateTimeConstants.SUNDAY:
+                dayOfWeek = "周日";
+                break;
+            case DateTimeConstants.MONDAY:
+                dayOfWeek = "周一";
+                break;
+            case DateTimeConstants.TUESDAY:
+                dayOfWeek = "周二";
+                break;
+            case DateTimeConstants.WEDNESDAY:
+                dayOfWeek = "周三";
+                break;
+            case DateTimeConstants.THURSDAY:
+                dayOfWeek = "周四";
+                break;
+            case DateTimeConstants.FRIDAY:
+                dayOfWeek = "周五";
+                break;
+            case DateTimeConstants.SATURDAY:
+                dayOfWeek = "周六";
+            default:
+                break;
+        }
+        return dayOfWeek;
+    }
+
 }
