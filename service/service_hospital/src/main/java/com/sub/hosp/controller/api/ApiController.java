@@ -107,6 +107,13 @@ public class ApiController {
         String depcode = (String) paramMap.get("depcode");
 
         // todo 签名
+        String sign = (String) paramMap.get("sign");
+        String key = hospitalSetService.getSignKey(hoscode);
+        String signKeyMD5 = MD5.encrypt(key);
+
+        if (!sign.equals(signKeyMD5)) {
+            throw new YyghException(ResultCodeEnum.SIGN_ERROR);
+        }
 
         departmentService.remove(hoscode, depcode);
 

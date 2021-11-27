@@ -9,6 +9,7 @@
         <module>service</module>
         <module>manager</module>
         <module>service_client</module>
+        <module>service_getway</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

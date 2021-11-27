@@ -1,17 +1,26 @@
-package com.sub.cmn.config;
+package com.sub.gateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+
+/**
+ * @author Europa
+ */
 @Configuration
 public class CorsConfig {
 
+    /**
+     * 跨域配置
+     *
+     * @return {@link CorsWebFilter} gateway的跨域配置不能使用CorsFilter,要用这个
+     */
     @Bean
-    public CorsFilter corsWebFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    public CorsWebFilter corsWebFilter() {
+        // p100
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         //配置跨域 请求头
         corsConfiguration.addAllowedHeader("*");
@@ -21,7 +30,9 @@ public class CorsConfig {
         corsConfiguration.addAllowedOrigin("*");
         //cookie
         corsConfiguration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
-        return new CorsFilter(source);
+        return new CorsWebFilter(source);
     }
 }
