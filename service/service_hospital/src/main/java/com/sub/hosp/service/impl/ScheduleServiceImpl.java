@@ -2,6 +2,7 @@ package com.sub.hosp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.sub.hosp.repository.ScheduleRepository;
+import com.sub.hosp.service.DepartmentService;
 import com.sub.hosp.service.HospitalService;
 import com.sub.hosp.service.ScheduleService;
 import com.sub.model.hosp.Schedule;
@@ -15,12 +16,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Europa
@@ -36,6 +35,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Resource
     HospitalService hospitalService;
+
+    @Resource
+    DepartmentService departmentService;
 
     @Override
     public void save(Map<String, Object> paramMap) {
@@ -127,7 +129,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         });
 
         // 获得医院名称
-        String hospName =  hospitalService.getHospName(hoscode);
+        String hospName = hospitalService.getHospName(hoscode);
         HashMap<String, String> hashMap = new HashMap<>(16);
         hashMap.put("hosname", hospName);
 
@@ -139,6 +141,33 @@ public class ScheduleServiceImpl implements ScheduleService {
         return map;
     }
 
+    @Override
+    public List<Schedule> getDetailSchedule(String hoscode, String depcode, String workDate) {
+        if (StringUtils.isEmpty(workDate) || "null".equals(workDate)) {
+            return null;
+        }
+        /*
+            预期组装条件 { "hoscode" : "1000_0", "depcode" : "200040878", "workDate" : { "$date" : 1611676800000}}
+            实际组装条件 {"find": "Schedule", "filter": {"hoscode": "1000_0", "depcode": "200040878", "workDate": {"$date": "2021-01-26T16:00:00Z"}}, "$db": "yygh_hosp"}
+            原本的日期会莫名其妙的-1, 导致查到前一天的数据
+         */
+        List<Schedule> list = scheduleRepository.findScheduleByHoscodeAndDepcodeAndWorkDate(hoscode, depcode, new DateTime(workDate).toDate());
+        list.forEach(this::packageSchedule);
+        return list;
+    }
+
+    private void packageSchedule(Schedule schedule) {
+        // 这2个都是MongoDB里面查询出来的结果,所以比mysql快很多
+        String hospName = hospitalService.getHospName(schedule.getHoscode());
+        schedule.getParam().put("hosname", hospName);
+
+        String depName = departmentService.getDepName(schedule.getHoscode(), schedule.getDepcode());
+        schedule.getParam().put("depname", depName);
+
+        String dayOfWeek = getDayOfWeek(new DateTime(schedule.getWorkDate()));
+        schedule.getParam().put("dayOfWeek", dayOfWeek);
+    }
+
     /**
      * 根据日期获取周几数据
      *
@@ -146,32 +175,24 @@ public class ScheduleServiceImpl implements ScheduleService {
      * @return 星期
      */
     private String getDayOfWeek(DateTime dateTime) {
-        String dayOfWeek = "";
         switch (dateTime.getDayOfWeek()) {
             case DateTimeConstants.SUNDAY:
-                dayOfWeek = "周日";
-                break;
+                return "周日";
             case DateTimeConstants.MONDAY:
-                dayOfWeek = "周一";
-                break;
+                return "周一";
             case DateTimeConstants.TUESDAY:
-                dayOfWeek = "周二";
-                break;
+                return "周二";
             case DateTimeConstants.WEDNESDAY:
-                dayOfWeek = "周三";
-                break;
+                return "周三";
             case DateTimeConstants.THURSDAY:
-                dayOfWeek = "周四";
-                break;
+                return "周四";
             case DateTimeConstants.FRIDAY:
-                dayOfWeek = "周五";
-                break;
+                return "周五";
             case DateTimeConstants.SATURDAY:
-                dayOfWeek = "周六";
+                return "周六";
             default:
-                break;
+                return "";
         }
-        return dayOfWeek;
     }
 
 }
