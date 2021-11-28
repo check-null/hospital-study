@@ -9,14 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>service_user</artifactId>
+    <artifactId>service_msm</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.sub</groupId>
-            <artifactId>service_cmn_client</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
 
 </project>
