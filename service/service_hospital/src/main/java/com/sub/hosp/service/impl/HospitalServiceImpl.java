@@ -103,7 +103,19 @@ public class HospitalServiceImpl implements HospitalService {
         return hospitalRepository.findHospitalByHosnameLike(hosname);
     }
 
-    private void setHospitalHosType(Hospital hosp) {
+    @Override
+    public Map<String, Object> item(String hoscode) {
+        Hospital hospital = setHospitalHosType(getByHoscode(hoscode));
+
+        HashMap<String, Object> map = new HashMap<>(16);
+        map.put("hospital", hospital);
+        map.put("bookingRule", hospital.getBookingRule());
+        hospital.setBookingRule(null);
+
+        return map;
+    }
+
+    private Hospital setHospitalHosType(Hospital hosp) {
         String hostype = dictFeignClient.getName("Hostype", hosp.getHostype());
         String province = dictFeignClient.getName(hosp.getProvinceCode());
         String city = dictFeignClient.getName(hosp.getCityCode());
@@ -111,6 +123,7 @@ public class HospitalServiceImpl implements HospitalService {
 
         hosp.getParam().put("fullAddress", province + city + district);
         hosp.getParam().put("hostypeString", hostype);
+        return hosp;
     }
 
 }
