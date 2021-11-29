@@ -9,17 +9,28 @@ import com.sub.model.user.UserInfo;
 import com.sub.user.mapper.UserInfoMapper;
 import com.sub.user.service.UserInfoService;
 import com.sub.vo.user.LoginVo;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> implements UserInfoService {
 
+    @Resource
+    RedisTemplate<String, String> redisTemplate;
+
     @Override
     public Map<String, Object> loginUser(LoginVo vo) {
+
+        String code = redisTemplate.opsForValue().get(vo.getPhone());
+        if (!vo.getCode().equals(code)) {
+            throw new YyghException(ResultCodeEnum.CODE_ERROR);
+        }
+
         QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
         wrapper.eq("phone", vo.getPhone());
         UserInfo userInfo = baseMapper.selectOne(wrapper);

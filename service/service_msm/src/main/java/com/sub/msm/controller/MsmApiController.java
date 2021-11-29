@@ -29,13 +29,23 @@ public class MsmApiController {
     @GetMapping("send/{phone}")
     public Result<String> sendCode(@PathVariable String phone) {
         String code = redisTemplate.opsForValue().get(phone);
+        Long expire = redisTemplate.opsForValue().getOperations().getExpire(phone);
+        // 1分钟内不能再次发送
+        if (!StringUtils.isEmpty(code) && expire != null && expire > 240) {
+            Result.fail("请勿频繁发送短信");
+        }
+
         if (!StringUtils.isEmpty(code)) {
             return Result.ok();
         }
         double random = Math.random();
-        code = "code:"+String.valueOf(random).substring(2, 8);
-//        smsComponent.send(code, phone);
-        redisTemplate.opsForValue().set(phone, code, 300, TimeUnit.SECONDS);
+        code = String.valueOf(random).substring(2, 8);
+        boolean isSend = smsComponent.send(code, phone);
+        if (isSend) {
+            redisTemplate.opsForValue().set(phone, code, 300, TimeUnit.SECONDS);
+        } else {
+            Result.fail("服务器错误,请联系客服");
+        }
 
         return Result.ok();
     }

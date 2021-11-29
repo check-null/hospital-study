@@ -22,8 +22,9 @@ public class SmsComponent {
      *
      * @param code  {@link String} code:xxxx
      * @param phone {@link String} 手机号
+     * @return
      */
-    public void send(String code, String phone) {
+    public boolean send(String code, String phone) {
         String host = "https://dfsns.market.alicloudapi.com";
         String path = "/data/send_sms";
         String method = "POST";
@@ -34,8 +35,8 @@ public class SmsComponent {
         //根据API的要求，定义相对应的Content-Type
         headers.put("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
         Map<String, String> querys = new HashMap<>();
-        Map<String, String> bodys = new HashMap<>();
-        bodys.put("content", code);
+        Map<String, String> bodys = new HashMap<>(16);
+        bodys.put("content", "code:" + code);
         bodys.put("phone_number", phone);
         bodys.put("template_id", "TPL_0000");
 
@@ -47,6 +48,8 @@ public class SmsComponent {
             System.out.println(EntityUtils.toString(response.getEntity()));
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 }
