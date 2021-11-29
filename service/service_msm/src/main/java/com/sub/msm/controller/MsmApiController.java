@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class MsmApiController {
 
     @Resource
-    RedisTemplate<String, Object> redisTemplate;
+    RedisTemplate<String, String> redisTemplate;
 
     @Resource
     SmsComponent smsComponent;
@@ -27,8 +27,8 @@ public class MsmApiController {
     MsmService msmService;
 
     @GetMapping("send/{phone}")
-    public Result<Object> sendCode(@PathVariable String phone) {
-        String code = (String) redisTemplate.opsForValue().get(phone);
+    public Result<String> sendCode(@PathVariable String phone) {
+        String code = redisTemplate.opsForValue().get(phone);
         if (!StringUtils.isEmpty(code)) {
             return Result.ok();
         }
