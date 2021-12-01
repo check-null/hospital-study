@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -26,10 +27,10 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 
 public class HttpUtils {
@@ -276,7 +277,8 @@ public class HttpUtils {
     }
 
     private static HttpClient wrapClient(String host) {
-        HttpClient httpClient = new DefaultHttpClient();
+        HttpClient httpClient = HttpClientBuilder.create().build();
+//        HttpClient httpClient = new DefaultHttpClient();
         if (host.startsWith("https://")) {
             sslClient(httpClient);
         }
@@ -302,11 +304,13 @@ public class HttpUtils {
                 }
             };
             ctx.init(null, new TrustManager[] { tm }, null);
-            SSLSocketFactory ssf = new SSLSocketFactory(ctx);
-            ssf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-            ClientConnectionManager ccm = httpClient.getConnectionManager();
-            SchemeRegistry registry = ccm.getSchemeRegistry();
-            registry.register(new Scheme("https", 443, ssf));
+            SSLSocketFactory ssf = ctx.getSocketFactory();
+
+//            SSLSocketFactory ssf = new SSLSocketFactory(ctx);
+//            ssf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+//            ClientConnectionManager ccm = httpClient.getConnectionManager();
+//            SchemeRegistry registry = ccm.getSchemeRegistry();
+//            registry.register(new Scheme("https", 443, ssf));
         } catch (KeyManagementException | NoSuchAlgorithmException ex) {
             throw new RuntimeException(ex);
         }

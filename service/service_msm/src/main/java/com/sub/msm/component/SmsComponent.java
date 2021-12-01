@@ -2,11 +2,17 @@ package com.sub.msm.component;
 
 import com.sub.common.helper.HttpUtils;
 import lombok.Data;
+import okhttp3.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +56,53 @@ public class SmsComponent {
             e.printStackTrace();
             return false;
         }
+        return true;
+    }
+
+    public boolean sendSms(String code, String phone) {
+        String url = "https://dfsns.market.alicloudapi.com/data/send_sms";
+        String appcode = appkey;
+        // 设置请求体
+        LinkedMultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>(16);
+        multiValueMap.add("content", "code:" + code);
+        multiValueMap.add("phone_number", phone);
+        multiValueMap.add("template_id", "TPL_0000");
+        // 设置请求头
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "APPCODE " + appcode);
+        headers.add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+
+        RestTemplate restTemplate = new RestTemplate();
+        String post = restTemplate.postForObject(url, new HttpEntity<>(multiValueMap, headers), String.class);
+        System.out.println("post = " + post);
+        return true;
+    }
+
+    public boolean sendMsg(String code, String phone) {
+        String appcode = appkey;
+        OkHttpClient client = new OkHttpClient();
+        // request body
+        FormBody requestBody = new FormBody.Builder()
+                .add("content", "code: " + code)
+                .add("phone_number", phone)
+                .add("template_id", "TPL_0000")
+                .build();
+
+        Request request = new Request.Builder()
+                .url("https://dfsns.market.alicloudapi.com/data/send_sms")
+                .addHeader("Authorization", "APPCODE " + appcode)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                .post(requestBody)
+                .build();
+        try (Response response = client.newCall(request).execute()){
+            if (response.body() != null) {
+                System.out.println(response.body().string());
+            }
+        } catch (IOException exception) {
+            exception.printStackTrace();
+            return false;
+        }
+
         return true;
     }
 }
