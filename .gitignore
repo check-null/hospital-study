@@ -35,3 +35,4 @@ build/
 .mvn
 /mvnw
 /mvnw.cmd
+/service/service_user/src/main/resources/oauth.properties

@@ -23,9 +23,13 @@ public class UserInfo extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "微信openid")
+    @ApiModelProperty(value = "QQ openid")
     @TableField("openid")
     private String openid;
+
+    @ApiModelProperty(value = "unionId")
+    @TableField("unionId")
+    private String unionId;
 
     @ApiModelProperty(value = "昵称")
     @TableField("nick_name")
@@ -58,5 +62,9 @@ public class UserInfo extends BaseEntity {
     @ApiModelProperty(value = "状态（0：锁定 1：正常）")
     @TableField("status")
     private Integer status;
+
+    @ApiModelProperty(value = "用户头像")
+    @TableField("head_img")
+    private String headImg;
 
 }

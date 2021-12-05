@@ -16,6 +16,9 @@ public class LoginVo {
     @ApiModelProperty(value = "openid")
     private String openid;
 
+    @ApiModelProperty(value = "unionId")
+    private String unionId;
+
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式错误")
     @ApiModelProperty(value = "手机号")
     private String phone;

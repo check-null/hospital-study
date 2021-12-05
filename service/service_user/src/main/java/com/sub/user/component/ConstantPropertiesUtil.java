@@ -1,32 +1,43 @@
 package com.sub.user.component;
 
-import org.springframework.beans.factory.InitializingBean;
+import lombok.Data;
+import me.zhyd.oauth.config.AuthConfig;
+import me.zhyd.oauth.request.AuthQqRequest;
+import me.zhyd.oauth.request.AuthRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
 @Component
-public class ConstantPropertiesUtil implements InitializingBean {
+@PropertySource("classpath:oauth.properties")
+public class ConstantPropertiesUtil {
 
-    @Value("${wx.open.app.id}")
+    @Value("${qq.appid}")
     private String appId;
-
-    @Value("${wx.open.app.secret}")
+    @Value("${qq.appkey}")
     private String appSecret;
-    @Value("${wx.open.redirect.url}")
+    @Value("${qq.callback}")
     private String redirectUrl;
     @Value("${yygh.baseUrl}")
-    private String yyghBaseUr1;
+    private String yyghBaseUrl;
 
-    public static String WX_OPEN_APP_ID;
-    public static String WX_OPEN_APP_SECRET;
-    public static String WX_OPEN_REDIRECT_URL;
-    public static String YYGH_BASE_URL;
+    public AuthRequest getAuthRequest() {
+        List<String> scopes = new ArrayList<>(10);
+        scopes.add("get_user_info");
+        scopes.add("getUnionId");
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        WX_OPEN_APP_ID = appId;
-        WX_OPEN_APP_SECRET = appSecret;
-        WX_OPEN_REDIRECT_URL = redirectUrl;
-        YYGH_BASE_URL = yyghBaseUr1;
+        final AuthConfig build = AuthConfig.builder()
+                .clientId(appId)
+                .clientSecret(appSecret)
+                .redirectUri(redirectUrl)
+                .unionId(true)
+                .scopes(scopes)
+                .build();
+        return new AuthQqRequest(build);
     }
+
 }

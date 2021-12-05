@@ -40,7 +40,7 @@ public class MsmApiController {
         }
         double random = Math.random();
         code = String.valueOf(random).substring(2, 8);
-        boolean isSend = smsComponent.send(code, phone);
+        boolean isSend = smsComponent.sendMsg(code, phone);
         if (isSend) {
             redisTemplate.opsForValue().set(phone, code, 300, TimeUnit.SECONDS);
         } else {
