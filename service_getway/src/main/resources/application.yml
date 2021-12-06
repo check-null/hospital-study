@@ -21,3 +21,6 @@ spring:
           predicates:
             - Path=/*/ucenter/**,/oauth/**
           uri: lb://service-user
+        - id: service-oss
+          predicates: Path=/*/oss/**
+          uri: lb://service-oss

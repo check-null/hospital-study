@@ -13,7 +13,7 @@ import java.util.List;
 
 @Data
 @Component
-@PropertySource("classpath:oauth.properties")
+@PropertySource("classpath:thirdparty.properties")
 public class ConstantPropertiesUtil {
 
     @Value("${qq.appid}")
