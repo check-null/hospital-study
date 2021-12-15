@@ -2,6 +2,8 @@ package com.sub.user.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sub.common.exception.YyghException;
 import com.sub.common.helper.JwtHelper;
@@ -13,6 +15,7 @@ import com.sub.user.mapper.UserInfoMapper;
 import com.sub.user.service.UserInfoService;
 import com.sub.vo.user.LoginVo;
 import com.sub.vo.user.UserAuthVo;
+import com.sub.vo.user.UserInfoQueryVo;
 import me.zhyd.oauth.model.AuthUser;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -155,6 +158,42 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         userInfo.setAuthStatus(AuthStatusEnum.AUTH_RUN.getStatus());
         // 更新
         baseMapper.updateById(userInfo);
+    }
+
+    @Override
+    public IPage<UserInfo> selectPage(Page<UserInfo> infoPage, UserInfoQueryVo vo) {
+        String name = vo.getKeyword();
+        Integer status = vo.getStatus();
+        Integer authStatus = vo.getAuthStatus();
+        String createTimeBegin = vo.getCreateTimeBegin();
+        String createTimeEnd = vo.getCreateTimeEnd();
+
+        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
+        if (name != null) {
+            wrapper.like("name", name);
+        }
+        if (status != null) {
+            wrapper.eq("status", status);
+        }
+        if (authStatus != null) {
+            wrapper.eq("auth_status", authStatus);
+        }
+        if (createTimeBegin != null) {
+            wrapper.ge("create_time", createTimeBegin);
+        }
+        if (createTimeEnd != null) {
+            wrapper.le("create_time", createTimeEnd);
+        }
+        Page<UserInfo> pages = baseMapper.selectPage(infoPage, wrapper);
+        pages.getRecords().forEach(this::packUserInfo);
+        return pages;
+    }
+
+    private UserInfo packUserInfo(UserInfo item) {
+        item.getParam().put("authStatusString", AuthStatusEnum.getStatusNameByStatus(item.getStatus()));
+        String statusString = item.getStatus() == 0 ? "锁定" : "正常";
+        item.getParam().put("statusString", statusString);
+        return item;
     }
 
 

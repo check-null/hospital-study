@@ -25,7 +25,7 @@ import java.util.List;
 @Component
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
-    private AntPathMatcher antPathMatcher = new AntPathMatcher();
+    private final AntPathMatcher ANT_PATH_MATCHER = new AntPathMatcher();
 
     /**
      * 统一处理会员登录与外部不允许访问的服务
@@ -40,14 +40,15 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         String path = request.getURI().getPath();
         System.out.println("path = " + path);
 
-        if (antPathMatcher.match("/**/inner/**", path)) {
+        if (ANT_PATH_MATCHER.match("/**/inner/**", path)) {
             ServerHttpResponse response = exchange.getResponse();
             return out(response, ResultCodeEnum.PERMISSION);
         }
 
-        Long userId = this.getUserId(request);
         //api接口，异步请求，校验用户必须登录
-        if (antPathMatcher.match("/api/**/auth/**", path)) {
+        if (ANT_PATH_MATCHER.match("/api/**/auth/**", path)) {
+            // 先这样吧,后台没做token直接拿userId会报错
+            Long userId = this.getUserId(request);
             if (StringUtils.isEmpty(userId)) {
                 ServerHttpResponse response = exchange.getResponse();
                 return out(response, ResultCodeEnum.LOGIN_AUTH);
