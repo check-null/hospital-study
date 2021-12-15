@@ -29,6 +29,7 @@ public class PatientApiController {
         Long userId = AuthContextHolder.getUserId(request);
         patient.setUserId(userId);
         // todo bug 传过来后生日时间会-1天
+        // contacts_certificates_type可能没赋值?
         boolean save = patientService.save(patient);
         return Result.ok(save);
     }

@@ -9,9 +9,11 @@ import com.sub.common.exception.YyghException;
 import com.sub.common.helper.JwtHelper;
 import com.sub.common.result.ResultCodeEnum;
 import com.sub.enums.AuthStatusEnum;
+import com.sub.model.user.Patient;
 import com.sub.model.user.UserInfo;
 import com.sub.user.component.ConstantPropertiesUtil;
 import com.sub.user.mapper.UserInfoMapper;
+import com.sub.user.service.PatientService;
 import com.sub.user.service.UserInfoService;
 import com.sub.vo.user.LoginVo;
 import com.sub.vo.user.UserAuthVo;
@@ -24,7 +26,9 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -35,6 +39,9 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
 
     @Resource
     ConstantPropertiesUtil constantPropertiesUtil;
+
+    @Resource
+    PatientService patientService;
 
     @Override
     public Map<String, Object> loginUser(LoginVo vo) {
@@ -189,8 +196,44 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         return pages;
     }
 
+    @Override
+    public boolean lock(Long userId, Integer status) {
+        // p147
+        if (status == 0 || status == 1) {
+            UserInfo userInfo = new UserInfo();
+            userInfo.setId(userId);
+            userInfo.setStatus(status);
+            userInfo.setUpdateTime(new Date());
+            return baseMapper.updateById(userInfo) > 0;
+        }
+        return false;
+    }
+
+    @Override
+    public Map<String, Object> show(Long userId) {
+        Map<String, Object> map = new HashMap<>(16);
+        UserInfo userInfo = packUserInfo(baseMapper.selectById(userId));
+        List<Patient> list = patientService.findAllUserId(userId);
+
+        map.put("userInfo", userInfo);
+        map.put("patientList", list);
+        return map;
+    }
+
+    @Override
+    public boolean approval(Long userId, Integer authStatus) {
+        // 2通过 -1不通过
+        if (authStatus == 2 || authStatus == -1) {
+            UserInfo userInfo = new UserInfo();
+            userInfo.setId(userId);
+            userInfo.setAuthStatus(authStatus);
+            return baseMapper.updateById(userInfo) > 0;
+        }
+        return false;
+    }
+
     private UserInfo packUserInfo(UserInfo item) {
-        item.getParam().put("authStatusString", AuthStatusEnum.getStatusNameByStatus(item.getStatus()));
+        item.getParam().put("authStatusString", AuthStatusEnum.getStatusNameByStatus(item.getAuthStatus()));
         String statusString = item.getStatus() == 0 ? "锁定" : "正常";
         item.getParam().put("statusString", statusString);
         return item;

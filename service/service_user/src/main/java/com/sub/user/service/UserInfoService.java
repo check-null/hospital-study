@@ -25,4 +25,10 @@ public interface UserInfoService extends IService<UserInfo> {
     void userAuth(Long userId, UserAuthVo vo);
 
     IPage<UserInfo> selectPage(Page<UserInfo> infoPage, UserInfoQueryVo vo);
+
+    boolean lock(Long userId, Integer status);
+
+    Map<String, Object> show(Long userId);
+
+    boolean approval(Long userId, Integer authStatus);
 }

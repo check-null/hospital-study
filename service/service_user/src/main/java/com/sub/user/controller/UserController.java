@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/user")
@@ -25,7 +26,25 @@ public class UserController {
                                @PathVariable Long limit,
                                UserInfoQueryVo vo) {
         Page<UserInfo> infoPage = new Page<>(page, limit);
-        IPage<UserInfo> iPage =userInfoService.selectPage(infoPage, vo);
+        IPage<UserInfo> iPage = userInfoService.selectPage(infoPage, vo);
         return Result.ok(iPage);
+    }
+
+    @GetMapping("lock/{userId}/{status}")
+    public Result<Object> lock(@PathVariable Long userId, @PathVariable Integer status) {
+        boolean lock = userInfoService.lock(userId, status);
+        return Result.ok(lock);
+    }
+
+    @GetMapping("show/{userId}")
+    public Result<Object> show(@PathVariable Long userId) {
+        Map<String, Object> map = userInfoService.show(userId);
+        return Result.ok(map);
+    }
+
+    @GetMapping("approval/{userId}/{authStatus}")
+    public Result<Object> approval(@PathVariable Long userId,@PathVariable Integer authStatus) {
+        boolean result = userInfoService.approval(userId, authStatus);
+        return Result.ok(result);
     }
 }

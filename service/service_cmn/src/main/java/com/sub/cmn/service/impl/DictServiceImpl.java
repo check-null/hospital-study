@@ -71,6 +71,8 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
 
     @Override
     public String getDictName(String dictCode, String value) {
+        System.out.println("dictCode = " + dictCode);
+        System.out.println("value = " + value);
         QueryWrapper<Dict> wrapper = new QueryWrapper<>();
         // 判断是否有dictCode
         if (StringUtils.isEmpty(dictCode)) {

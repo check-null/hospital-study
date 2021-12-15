@@ -37,13 +37,14 @@ public class PatientServiceImpl extends ServiceImpl<PatientMapper, Patient> impl
     }
 
     private Patient packPatient(Patient patient) {
-//根据证件类型编码，获取证件类型具体指
+        //根据证件类型编码，获取证件类型具体指
         //联系人证件
         String certificatesTypeString =
                 dictFeignClient.getName(DictEnum.CERTIFICATES_TYPE.getDictCode(), patient.getCertificatesType());
         //联系人证件类型
         String contactsCertificatesTypeString =
                 dictFeignClient.getName(DictEnum.CERTIFICATES_TYPE.getDictCode(), patient.getContactsCertificatesType());
+        System.out.println("patient.getContactsCertificatesType() = " + patient.getContactsCertificatesType());
         //省
         String provinceString = dictFeignClient.getName(patient.getProvinceCode());
         //市
