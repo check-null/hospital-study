@@ -1,15 +1,21 @@
 package com.sub.hosp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sub.common.exception.YyghException;
+import com.sub.common.result.ResultCodeEnum;
 import com.sub.hosp.repository.ScheduleRepository;
 import com.sub.hosp.service.DepartmentService;
 import com.sub.hosp.service.HospitalService;
 import com.sub.hosp.service.ScheduleService;
+import com.sub.model.hosp.BookingRule;
+import com.sub.model.hosp.Hospital;
 import com.sub.model.hosp.Schedule;
 import com.sub.vo.hosp.BookingScheduleRuleVo;
 import com.sub.vo.hosp.ScheduleQueryVo;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
+import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -19,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -154,6 +161,57 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<Schedule> list = scheduleRepository.findScheduleByHoscodeAndDepcodeAndWorkDate(hoscode, depcode, new DateTime(workDate).toDate());
         list.forEach(this::packageSchedule);
         return list;
+    }
+
+    @Override
+    public Map<String, Object> getBookingScheduleRule(Integer page, Integer limit, String hoscode, String depcode) {
+        HashMap<String, Object> map = new HashMap<>(16);
+        Hospital hospital = hospitalService.getByHoscode(hoscode);
+        if (hospital == null) {
+            throw new YyghException(ResultCodeEnum.DATA_ERROR);
+        }
+        BookingRule bookingRule = hospital.getBookingRule();
+        //获得可预约日期数据
+        IPage<Date> iPage = this.getListDate(page, limit, bookingRule);
+        List<Date> dateList = iPage.getRecords();
+
+        return null;
+    }
+
+    private IPage<Date> getListDate(Integer page, Integer limit, BookingRule bookingRule) {
+        //获得当天放号时间 年月日时分
+        DateTime releaseTime = this.getDateTime(new Date(), bookingRule.getReleaseTime());
+        //获得预约周期
+        Integer cycle = bookingRule.getCycle();
+        //如果当天放号时间已经过去了,预约周期从后一天开始计算,周期+1
+        if (releaseTime.isBeforeNow()) {
+            cycle += 1;
+        }
+        //预约可预约所有日期,最后一天显示即将放号
+        ArrayList<Date> dateList = new ArrayList<>(cycle);
+        for (int i = 0; i < cycle; i++) {
+            DateTime currentTime = new DateTime().plusDays(1);
+            String dateString = currentTime.toString("yyyy-MM-dd");
+            dateList.add(new DateTime(dateString).toDate());
+        }
+        //因为预约周期不同,每页显示日期最多7天数据,超过7天的分页
+        ArrayList<Date> pageDateList = new ArrayList<>();
+        int start  = (page - 1) * limit;
+        int end = (page - 1) * limit + limit;
+        if (end > dateList.size()) {
+            end = dateList.size();
+        }
+        for (int i = start; i < end; i++) {
+            pageDateList.add(dateList.get(i));
+        }
+        IPage<Date> iPage = new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(page, 7, dateList.size());
+        iPage.setRecords(pageDateList);
+        return iPage;
+    }
+
+    private DateTime getDateTime(Date date, String time) {
+        String dateTimeString = new DateTime(date).toString("yyyy-MM-dd") + " " + time;
+        return DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").parseDateTime(dateTimeString);
     }
 
     private void packageSchedule(Schedule schedule) {
