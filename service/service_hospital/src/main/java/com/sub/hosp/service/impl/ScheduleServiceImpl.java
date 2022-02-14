@@ -9,6 +9,7 @@ import com.sub.hosp.service.DepartmentService;
 import com.sub.hosp.service.HospitalService;
 import com.sub.hosp.service.ScheduleService;
 import com.sub.model.hosp.BookingRule;
+import com.sub.model.hosp.Department;
 import com.sub.model.hosp.Hospital;
 import com.sub.model.hosp.Schedule;
 import com.sub.vo.hosp.BookingScheduleRuleVo;
@@ -22,11 +23,12 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Europa
@@ -165,7 +167,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public Map<String, Object> getBookingScheduleRule(Integer page, Integer limit, String hoscode, String depcode) {
-        HashMap<String, Object> map = new HashMap<>(16);
+        HashMap<String, Object> result = new HashMap<>(16);
         Hospital hospital = hospitalService.getByHoscode(hoscode);
         if (hospital == null) {
             throw new YyghException(ResultCodeEnum.DATA_ERROR);
@@ -174,8 +176,100 @@ public class ScheduleServiceImpl implements ScheduleService {
         //获得可预约日期数据
         IPage<Date> iPage = this.getListDate(page, limit, bookingRule);
         List<Date> dateList = iPage.getRecords();
+        //获得可预约日期里面科室的剩余预约数
+        Criteria criteria = Criteria.where("hoscode")
+                .is(hoscode)
+                .and("depcode")
+                .is(depcode)
+                .and("workDate")
+                .in(dateList);
 
-        return null;
+        MatchOperation match = Aggregation.match(criteria);
+        GroupOperation groupOperation = Aggregation.group("workDate")
+                .first("workDate")
+                .as("workDate")
+                .count()
+                .as("docCount")
+                .sum("availableNumber")
+                .as("availableNumber")
+                .sum("reservedNumber")
+                .as("reservedNumber");
+        Aggregation agg = Aggregation.newAggregation(match, groupOperation);
+
+        AggregationResults<BookingScheduleRuleVo> aggregationResults = mongoTemplate.aggregate(agg, Schedule.class, BookingScheduleRuleVo.class);
+        List<BookingScheduleRuleVo> scheduleVoList = aggregationResults.getMappedResults();
+
+        //合并数据 map集合 key日期 value预约规则和剩余数量等
+        Map<Date, BookingScheduleRuleVo> scheduleVoMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(scheduleVoList)) {
+            scheduleVoMap = scheduleVoList.stream()
+                    .collect(
+                            Collectors.toMap(
+                                    BookingScheduleRuleVo::getWorkDate,
+                                    bookingScheduleRuleVo -> bookingScheduleRuleVo
+                            )
+                    );
+        }
+        //获取可预约排班规则
+        ArrayList<BookingScheduleRuleVo> bookingScheduleRuleVoList = new ArrayList<>();
+
+        int len = dateList.size();
+        for (int i = 0; i < len; i++) {
+            Date date = dateList.get(i);
+
+            BookingScheduleRuleVo bookingScheduleRuleVo = scheduleVoMap.get(date);
+            if (null == bookingScheduleRuleVo) { // 说明当天没有排班医生
+                bookingScheduleRuleVo = new BookingScheduleRuleVo();
+                //就诊医生人数
+                bookingScheduleRuleVo.setDocCount(0);
+                //科室剩余预约数  -1表示无号
+                bookingScheduleRuleVo.setAvailableNumber(-1);
+            }
+            bookingScheduleRuleVo.setWorkDate(date);
+            bookingScheduleRuleVo.setWorkDateMd(date);
+            //计算当前预约日期为周几
+            String dayOfWeek = this.getDayOfWeek(new DateTime(date));
+            bookingScheduleRuleVo.setDayOfWeek(dayOfWeek);
+
+            //最后一页最后一条记录为即将预约   状态 0：正常 1：即将放号 -1：当天已停止挂号
+            if (i == len - 1 && page == iPage.getPages()) {
+                bookingScheduleRuleVo.setStatus(1);
+            } else {
+                bookingScheduleRuleVo.setStatus(0);
+            }
+            //当天预约如果过了停号时间， 不能预约
+            if (i == 0 && page == 1) {
+                DateTime stopTime = this.getDateTime(new Date(), bookingRule.getStopTime());
+                if (stopTime.isBeforeNow()) {
+                    //停止预约
+                    bookingScheduleRuleVo.setStatus(-1);
+                }
+            }
+            bookingScheduleRuleVoList.add(bookingScheduleRuleVo);
+        }
+
+        //可预约日期规则数据
+        result.put("bookingScheduleList", bookingScheduleRuleVoList);
+        result.put("total", iPage.getTotal());
+        //其他基础数据
+        Map<String, String> baseMap = new HashMap<>();
+        //医院名称
+        baseMap.put("hosname", hospitalService.getHospName(hoscode));
+        //科室
+        Department department = departmentService.getDepartment(hoscode, depcode);
+        //大科室名称
+        baseMap.put("bigname", department.getBigname());
+        //科室名称
+        baseMap.put("depname", department.getDepname());
+        //月
+        baseMap.put("workDateString", new DateTime().toString("yyyy年MM月"));
+        //放号时间
+        baseMap.put("releaseTime", bookingRule.getReleaseTime());
+        //停号时间
+        baseMap.put("stopTime", bookingRule.getStopTime());
+        result.put("baseMap", baseMap);
+        return result;
+
     }
 
     private IPage<Date> getListDate(Integer page, Integer limit, BookingRule bookingRule) {
@@ -196,7 +290,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         //因为预约周期不同,每页显示日期最多7天数据,超过7天的分页
         ArrayList<Date> pageDateList = new ArrayList<>();
-        int start  = (page - 1) * limit;
+        int start = (page - 1) * limit;
         int end = (page - 1) * limit + limit;
         if (end > dateList.size()) {
             end = dateList.size();

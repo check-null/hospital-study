@@ -11,7 +11,6 @@ import java.util.Map;
 public interface DepartmentService {
     void save(Map<String, Object> paramMap);
 
-
     Page<Department> findPageDepartment(int page, int limit, DepartmentQueryVo queryVo);
 
     void remove(String hoscode, String depcode);
@@ -19,4 +18,6 @@ public interface DepartmentService {
     List<DepartmentVo> findDeptTree(String hospcode);
 
     String getDepName(String hoscode, String depcode);
+
+    Department getDepartment(String hoscode, String depcode);
 }
