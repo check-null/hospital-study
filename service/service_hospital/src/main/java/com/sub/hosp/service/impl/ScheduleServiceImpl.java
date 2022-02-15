@@ -272,6 +272,12 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     }
 
+    @Override
+    public Schedule getByScheduleId(String scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElse(null);
+        return this.packageSchedule(schedule);
+    }
+
     private IPage<Date> getListDate(Integer page, Integer limit, BookingRule bookingRule) {
         //获得当天放号时间 年月日时分
         DateTime releaseTime = this.getDateTime(new Date(), bookingRule.getReleaseTime());
@@ -284,7 +290,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         //预约可预约所有日期,最后一天显示即将放号
         ArrayList<Date> dateList = new ArrayList<>(cycle);
         for (int i = 0; i < cycle; i++) {
-            DateTime currentTime = new DateTime().plusDays(1);
+            DateTime currentTime = new DateTime().plusDays(i);
             String dateString = currentTime.toString("yyyy-MM-dd");
             dateList.add(new DateTime(dateString).toDate());
         }
@@ -308,7 +314,10 @@ public class ScheduleServiceImpl implements ScheduleService {
         return DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").parseDateTime(dateTimeString);
     }
 
-    private void packageSchedule(Schedule schedule) {
+    private Schedule packageSchedule(Schedule schedule) {
+        if (schedule == null) {
+            return null;
+        }
         // 这2个都是MongoDB里面查询出来的结果,所以比mysql快很多
         String hospName = hospitalService.getHospName(schedule.getHoscode());
         schedule.getParam().put("hosname", hospName);
@@ -318,6 +327,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         String dayOfWeek = getDayOfWeek(new DateTime(schedule.getWorkDate()));
         schedule.getParam().put("dayOfWeek", dayOfWeek);
+        return schedule;
     }
 
     /**

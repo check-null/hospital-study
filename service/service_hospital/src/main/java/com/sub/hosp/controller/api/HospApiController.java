@@ -93,4 +93,11 @@ public class HospApiController {
         return Result.ok(list);
 
     }
+
+    @ApiOperation("通过排班id获取排班数据")
+    @GetMapping("getSchedule/{scheduleId}")
+    public Result<Object> getSchedule(@PathVariable String scheduleId) {
+        Schedule schedule = scheduleService.getByScheduleId(scheduleId);
+        return Result.ok(schedule);
+    }
 }
