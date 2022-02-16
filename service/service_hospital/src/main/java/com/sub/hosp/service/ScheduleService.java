@@ -1,6 +1,7 @@
 package com.sub.hosp.service;
 
 import com.sub.model.hosp.Schedule;
+import com.sub.vo.hosp.ScheduleOrderVo;
 import com.sub.vo.hosp.ScheduleQueryVo;
 import org.springframework.data.domain.Page;
 
@@ -21,4 +22,6 @@ public interface ScheduleService {
     Map<String, Object> getBookingScheduleRule(Integer page, Integer limit, String hoscode, String depcode);
 
     Schedule getByScheduleId(String scheduleId);
+
+    ScheduleOrderVo getScheduleOrderVo(String scheduleId);
 }

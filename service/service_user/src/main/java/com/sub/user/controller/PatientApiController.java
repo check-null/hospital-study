@@ -53,5 +53,8 @@ public class PatientApiController {
         return Result.ok(b);
     }
 
-
+    @GetMapping("inner/get/{id}")
+    public Patient getPatientOrder(@PathVariable Long id) {
+        return patientService.getByPatientId(id);
+    }
 }

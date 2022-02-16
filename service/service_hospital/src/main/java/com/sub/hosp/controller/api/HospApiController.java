@@ -3,11 +3,14 @@ package com.sub.hosp.controller.api;
 import com.sub.common.result.Result;
 import com.sub.hosp.service.DepartmentService;
 import com.sub.hosp.service.HospitalService;
+import com.sub.hosp.service.HospitalSetService;
 import com.sub.hosp.service.ScheduleService;
 import com.sub.model.hosp.Hospital;
 import com.sub.model.hosp.Schedule;
 import com.sub.vo.hosp.DepartmentVo;
 import com.sub.vo.hosp.HospitalQueryVo;
+import com.sub.vo.hosp.ScheduleOrderVo;
+import com.sub.vo.order.SignInfoVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -33,6 +36,9 @@ public class HospApiController {
 
     @Resource
     ScheduleService scheduleService;
+
+    @Resource
+    HospitalSetService hospitalSetService;
 
     @ApiOperation("查询医院列表")
     @GetMapping("findHospList/{page}/{limit}")
@@ -100,4 +106,19 @@ public class HospApiController {
         Schedule schedule = scheduleService.getByScheduleId(scheduleId);
         return Result.ok(schedule);
     }
+
+    @ApiOperation("通过排班id获取预约下单的数据")
+    @GetMapping("inner/getScheduleOrderVo/{scheduleId}")
+    public ScheduleOrderVo getScheduleOrderVo(@PathVariable String scheduleId) {
+        return scheduleService.getScheduleOrderVo(scheduleId);
+    }
+
+    @ApiOperation(value = "获取医院签名信息")
+    @GetMapping("inner/getSignInfoVo/{hoscode}")
+    public SignInfoVo getSignInfoVo(
+            @ApiParam(name = "hoscode", value = "医院code", required = true)
+            @PathVariable("hoscode") String hoscode) {
+        return hospitalSetService.getSignInfoVo(hoscode);
+    }
+
 }

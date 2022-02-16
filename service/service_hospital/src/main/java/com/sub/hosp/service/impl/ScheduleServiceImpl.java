@@ -13,6 +13,7 @@ import com.sub.model.hosp.Department;
 import com.sub.model.hosp.Hospital;
 import com.sub.model.hosp.Schedule;
 import com.sub.vo.hosp.BookingScheduleRuleVo;
+import com.sub.vo.hosp.ScheduleOrderVo;
 import com.sub.vo.hosp.ScheduleQueryVo;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
@@ -276,6 +277,12 @@ public class ScheduleServiceImpl implements ScheduleService {
     public Schedule getByScheduleId(String scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElse(null);
         return this.packageSchedule(schedule);
+    }
+
+    @Override
+    public ScheduleOrderVo getScheduleOrderVo(String scheduleId) {
+
+        return null;
     }
 
     private IPage<Date> getListDate(Integer page, Integer limit, BookingRule bookingRule) {
