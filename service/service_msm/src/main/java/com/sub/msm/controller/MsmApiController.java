@@ -5,10 +5,7 @@ import com.sub.msm.component.SmsComponent;
 import com.sub.msm.service.MsmService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +23,7 @@ public class MsmApiController {
     @Resource
     MsmService msmService;
 
-    @GetMapping("send/{phone}")
+    @PostMapping("send/{phone}")
     public Result<String> sendCode(@PathVariable String phone) {
         String code = redisTemplate.opsForValue().get(phone);
         Long expire = redisTemplate.opsForValue().getOperations().getExpire(phone);

@@ -1,6 +1,7 @@
 package com.sub.msm.component;
 
 import com.sub.common.helper.HttpUtils;
+import com.sub.vo.msm.MsmVo;
 import lombok.Data;
 import okhttp3.*;
 import org.apache.http.HttpResponse;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -31,8 +33,8 @@ public class SmsComponent {
      * @return
      */
     public boolean send(String code, String phone) {
-        String host = "https://dfsns.market.alicloudapi.com";
-        String path = "/data/send_sms";
+        String host = "https://intlsms.market.alicloudapi.com";
+        String path = "/comms/sms/sendmsgall";
         String method = "POST";
         String appcode = appkey;
         Map<String, String> headers = new HashMap<>(16);
@@ -42,9 +44,9 @@ public class SmsComponent {
         headers.put("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
         Map<String, String> querys = new HashMap<>();
         Map<String, String> bodys = new HashMap<>(16);
-        bodys.put("content", "code:" + code);
-        bodys.put("phone_number", phone);
-        bodys.put("template_id", "TPL_0000");
+        bodys.put("templateParamSet", code + ", 3");
+        bodys.put("mobile", phone);
+        bodys.put("templateID", "0000000");
 
 
         try {
@@ -83,26 +85,36 @@ public class SmsComponent {
         OkHttpClient client = new OkHttpClient();
         // request body
         FormBody requestBody = new FormBody.Builder()
-                .add("content", "code: " + code)
-                .add("phone_number", phone)
-                .add("template_id", "TPL_0000")
+                .add("templateParamSet", code + ", 3")
+                .add("mobile", "+86" + phone)
+                .add("templateID", "0000000")
                 .build();
 
         Request request = new Request.Builder()
-                .url("https://dfsns.market.alicloudapi.com/data/send_sms")
+                .url("https://intlsms.market.alicloudapi.com/comms/sms/sendmsgall")
                 .addHeader("Authorization", "APPCODE " + appcode)
                 .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                 .post(requestBody)
                 .build();
-        try (Response response = client.newCall(request).execute()){
-            if (response.body() != null) {
-                System.out.println(response.body().string());
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() != null && response.code() == 200) {
+                System.out.println(response);
+            } else {
+                throw new Exception("code " + response.code());
             }
-        } catch (IOException exception) {
+        } catch (Exception exception) {
             exception.printStackTrace();
             return false;
         }
 
         return true;
+    }
+
+    public boolean sendMq(MsmVo msmVo) {
+        if (!StringUtils.isEmpty(msmVo)) {
+            String code = (String) msmVo.getParam().get("code");
+            return this.sendMsg(code, msmVo.getMobile());
+        }
+        return false;
     }
 }

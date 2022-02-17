@@ -24,4 +24,6 @@ public interface ScheduleService {
     Schedule getByScheduleId(String scheduleId);
 
     ScheduleOrderVo getScheduleOrderVo(String scheduleId);
+
+    void update(Schedule schedule);
 }

@@ -11,5 +11,11 @@
 
     <artifactId>service_msm</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>com.sub</groupId>
+            <artifactId>rabbit_util</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>
