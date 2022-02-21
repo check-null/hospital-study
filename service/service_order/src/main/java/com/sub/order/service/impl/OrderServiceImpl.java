@@ -93,20 +93,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         String sign = HttpRequestHelper.getSign(paramMap, signInfoVo.getSignKey());
         paramMap.put("sign", sign);
         JSONObject result = HttpRequestHelper.sendRequest(paramMap, signInfoVo.getApiUrl() + "/order/submitOrder");
-
+        // todo manager那可能有问题
         if (result.getInteger("code") == 200) {
             JSONObject jsonObject = result.getJSONObject("data");
             //预约记录唯一标识（医院预约记录主键）
             String hosRecordId = jsonObject.getString("hosRecordId");
             //预约序号
             Integer number = jsonObject.getInteger("number");
-            ;
             //取号时间
             String fetchTime = jsonObject.getString("fetchTime");
-            ;
             //取号地址
             String fetchAddress = jsonObject.getString("fetchAddress");
-            ;
             //更新订单
             orderInfo.setHosRecordId(hosRecordId);
             orderInfo.setNumber(number);
@@ -149,4 +146,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         }
         return orderInfo.getId();
     }
+
+    @Override
+    public OrderInfo getOrder(String orderId) {
+        OrderInfo orderInfo = baseMapper.selectById(orderId);
+        return this.packOrderInfo(orderInfo);
+    }
+
+    private OrderInfo packOrderInfo(OrderInfo orderInfo) {
+        orderInfo.getParam().put("orderStatusString", OrderStatusEnum.getStatusNameByStatus(orderInfo.getOrderStatus()));
+        return orderInfo;
+    }
+
 }

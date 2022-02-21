@@ -5,4 +5,6 @@ import com.sub.model.order.OrderInfo;
 
 public interface OrderService extends IService<OrderInfo> {
     Long saveOrder(String scheduleId, Long patientId);
+
+    OrderInfo getOrder(String orderId);
 }

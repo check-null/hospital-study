@@ -1,11 +1,9 @@
 package com.sub.order.api;
 
 import com.sub.common.result.Result;
+import com.sub.model.order.OrderInfo;
 import com.sub.order.service.OrderService;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -23,6 +21,12 @@ public class OrderApiController {
     public Result<Object> saveOrders(@PathVariable String scheduleId, @PathVariable Long patientId) {
         Long orderId = orderService.saveOrder(scheduleId, patientId);
         return Result.ok(orderId);
+    }
+
+    @GetMapping("auth/getOrders/{orderId}")
+    public Result<Object> getOrders(@PathVariable String orderId) {
+        OrderInfo orderInfo = orderService.getOrder(orderId);
+        return Result.ok(orderInfo);
     }
 
 }

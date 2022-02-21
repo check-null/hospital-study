@@ -283,7 +283,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleOrderVo getScheduleOrderVo(String scheduleId) {
         ScheduleOrderVo scheduleOrderVo = new ScheduleOrderVo();
         //获取排班信息 库里没这个表,baseMapper是肯定拿不到数据的
-        Schedule schedule = scheduleRepository.getByHosScheduleId(scheduleId);
+        Schedule schedule = scheduleRepository.getById(scheduleId);
         if(schedule == null) {
             throw new YyghException(ResultCodeEnum.PARAM_ERROR);
         }

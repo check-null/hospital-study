@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient("service-hosp")
 public interface HospitalFeignClient {
 
-    @GetMapping("inner/getScheduleOrderVo/{scheduleId}")
+    @GetMapping("/api/hosp/hospital/inner/getScheduleOrderVo/{scheduleId}")
     ScheduleOrderVo getScheduleOrderVo(@PathVariable String scheduleId);
 
     /**
