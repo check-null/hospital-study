@@ -11,4 +11,6 @@ public interface PatientFeignClient {
     @GetMapping("api/user/patient/inner/get/{id}")
     Patient getPatientOrder(@PathVariable("id") Long id);
 
+    @GetMapping("api/user/patient/auth/get/{id}")
+    Patient getPatient(@PathVariable Long id);
 }

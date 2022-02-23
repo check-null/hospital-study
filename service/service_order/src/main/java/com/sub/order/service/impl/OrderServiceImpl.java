@@ -1,6 +1,9 @@
 package com.sub.order.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sub.common.exception.YyghException;
 import com.sub.common.helper.HttpRequestHelper;
@@ -11,13 +14,16 @@ import com.sub.enums.OrderStatusEnum;
 import com.sub.hosp.client.HospitalFeignClient;
 import com.sub.model.order.OrderInfo;
 import com.sub.model.user.Patient;
+import com.sub.model.user.UserInfo;
 import com.sub.order.mapper.OrderMapper;
 import com.sub.order.service.OrderService;
 import com.sub.user.client.PatientFeignClient;
 import com.sub.vo.hosp.ScheduleOrderVo;
 import com.sub.vo.msm.MsmVo;
 import com.sub.vo.order.OrderMqVo;
+import com.sub.vo.order.OrderQueryVo;
 import com.sub.vo.order.SignInfoVo;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -58,7 +64,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         BeanUtils.copyProperties(scheduleOrderVo, orderInfo);
         String outTradeNo = System.currentTimeMillis() + "" + new Random().nextInt(100);
         orderInfo.setOutTradeNo(outTradeNo);
-        orderInfo.setScheduleId(scheduleId);
+        orderInfo.setScheduleId(scheduleOrderVo.getHosScheduleId());
         orderInfo.setUserId(patient.getUserId());
         orderInfo.setPatientId(patientId);
         orderInfo.setPatientName(patient.getName());
@@ -66,7 +72,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         orderInfo.setOrderStatus(OrderStatusEnum.UNPAID.getStatus());
         this.save(orderInfo);
 
-        Map<String, Object> paramMap = new HashMap<>();
+        Map<String, Object> paramMap = new HashMap<>(32);
         paramMap.put("hoscode", orderInfo.getHoscode());
         paramMap.put("depcode", orderInfo.getDepcode());
         paramMap.put("hosScheduleId", orderInfo.getScheduleId());
@@ -152,6 +158,61 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         OrderInfo orderInfo = baseMapper.selectById(orderId);
         return this.packOrderInfo(orderInfo);
     }
+
+    @Override
+    public IPage<OrderInfo> selectPage(Page<OrderInfo> pageParam, OrderQueryVo orderQueryVo) {
+        //医院名
+        String name = orderQueryVo.getKeyword();
+        //user id
+        Long userId = orderQueryVo.getUserId();
+        //患者名
+        String patientName = orderQueryVo.getPatientName();
+        //订单状态
+        String orderStatus = orderQueryVo.getOrderStatus();
+        //安排时间
+        String reserveDate = orderQueryVo.getReserveDate();
+        String createTimeBegin = orderQueryVo.getCreateTimeBegin();
+        String createTimeEnd = orderQueryVo.getCreateTimeEnd();
+        QueryWrapper<OrderInfo> wrapper = new QueryWrapper<>();
+        if (StringUtils.isNotEmpty(name)) {
+            wrapper.like("hosname", name);
+        }
+        if (userId != null) {
+            wrapper.eq("user_id", userId);
+        }
+        if (StringUtils.isNotBlank(patientName)) {
+            wrapper.eq("patient_name", patientName);
+        }
+        if (StringUtils.isNotBlank(orderStatus)) {
+            wrapper.eq("order_status", orderStatus);
+        }
+        if (StringUtils.isNotBlank(reserveDate)) {
+            wrapper.ge("reserve_date", reserveDate);
+        }
+        if (StringUtils.isNotBlank(createTimeBegin)) {
+            wrapper.ge("create_time", createTimeBegin);
+        }
+        if (StringUtils.isNotBlank(createTimeEnd)) {
+            wrapper.le("create_time", createTimeEnd);
+        }
+        Page<OrderInfo> pages = baseMapper.selectPage(pageParam, wrapper);
+        pages.getRecords().forEach(this::packOrderInfo);
+
+        return pages;
+    }
+
+    @Override
+    public Map<String, Object> show(Long orderId) {
+        Map<String, Object> map = new HashMap<>(16);
+        OrderInfo orderInfo = this.packOrderInfo(this.getById(orderId));
+        map.put("orderInfo", orderInfo);
+        Long patientId = orderInfo.getPatientId();
+        // todo 拿不到数据
+        Patient patient = patientFeignClient.getPatient(patientId);
+        map.put("patient", patient);
+        return map;
+    }
+
 
     private OrderInfo packOrderInfo(OrderInfo orderInfo) {
         orderInfo.getParam().put("orderStatusString", OrderStatusEnum.getStatusNameByStatus(orderInfo.getOrderStatus()));
