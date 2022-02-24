@@ -11,6 +11,12 @@
     <artifactId>service_order</artifactId>
 
     <dependencies>
+        <!--    alipay    -->
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+            <version>4.22.37.ALL</version>
+        </dependency>
         <dependency>
             <groupId>com.sub</groupId>
             <artifactId>rabbit_util</artifactId>

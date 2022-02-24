@@ -37,3 +37,4 @@ build/
 /mvnw.cmd
 /service/service_user/src/main/resources/thirdparty.properties
 /service/service_oss/src/main/resources/thirdparty.properties
+/service/service_order/src/main/resources/thirdparty.properties
