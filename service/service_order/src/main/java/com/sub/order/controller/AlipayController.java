@@ -17,8 +17,8 @@ public class AlipayController {
 
     @GetMapping("/pay")
     public Result<Object> pay() {
-        String pay = alipayComponent.pay();
+//        String pay = alipayComponent.pay();
 
-        return Result.ok(pay);
+        return Result.ok();
     }
 }

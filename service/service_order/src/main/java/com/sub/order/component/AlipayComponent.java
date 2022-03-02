@@ -6,11 +6,15 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import com.sub.model.order.OrderInfo;
 import lombok.Data;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.Random;
 
 @Data
 @Component
@@ -63,22 +67,27 @@ public class AlipayComponent {
      */
     private String signType = "RSA2";
 
-    public String pay() {
+    /**
+     * 生成支付信息代码
+     *
+     * @return 支付信息代码
+     */
+    public String pay(OrderInfo order) {
         AlipayClient alipayClient = new DefaultAlipayClient(url, appId, rsaPrivateKey, format, charset, alipayPublicKey, signType);
         //创建API对应的request
         AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
         alipayRequest.setReturnUrl("");
-        alipayRequest.setNotifyUrl("");
+        alipayRequest.setNotifyUrl("http://admin.shop.com/api/order/alipay/notify");
         //填充业务参数
         JSONObject bizContent = new JSONObject();
         // 订单号
-        bizContent.put("out_trade_no", "20210817010101004");
+        bizContent.put("out_trade_no", order.getOutTradeNo());
         // 金额
-        bizContent.put("total_amount", 0.01);
+        bizContent.put("total_amount", order.getAmount().toString());
         // 订单标题
-        bizContent.put("subject", "测试商品");
+        String subject = order.getReserveDate() + "就诊" + order.getDepname();
+        bizContent.put("subject", subject);
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
-
         alipayRequest.setBizContent(bizContent.toString());
         String data = null;
         try {

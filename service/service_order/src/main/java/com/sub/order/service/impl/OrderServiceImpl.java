@@ -62,6 +62,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         SignInfoVo signInfoVo = hospitalFeignClient.getSignInfoVo(scheduleOrderVo.getHoscode());
         OrderInfo orderInfo = new OrderInfo();
         BeanUtils.copyProperties(scheduleOrderVo, orderInfo);
+        // todo 这个订单号不行需要重新设计
         String outTradeNo = System.currentTimeMillis() + "" + new Random().nextInt(100);
         orderInfo.setOutTradeNo(outTradeNo);
         orderInfo.setScheduleId(scheduleOrderVo.getHosScheduleId());
