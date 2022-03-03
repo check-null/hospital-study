@@ -13,10 +13,10 @@ class AlipayComponentTest {
     @Test
     void test() {
         String orderTime = new DateTime().toString("yyyyMMdd");
-        int nextInt = new Random().nextInt(100);
-        String o = orderTime + nextInt;
-        System.out.println(o);
-
+        double random = Math.random();
+        String s1 = String.valueOf(random).substring(2, 6);
+        String s2 = orderTime + "200040878" + s1;
+        System.out.println(s2);
 
         BigDecimal bigDecimal = new BigDecimal("1998.00");
         BigDecimal bigDecimal1 = new BigDecimal("0.098");
@@ -25,10 +25,6 @@ class AlipayComponentTest {
 
         System.out.println(s);
 
-        for (int j = 0; j < 20; j++) {
-            int i = new Random().nextInt(100);
-            System.out.println(i);
-        }
     }
 
 }

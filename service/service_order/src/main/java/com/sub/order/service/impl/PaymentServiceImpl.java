@@ -11,6 +11,7 @@ import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Map;
 
 @Service
 public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentInfo> implements PaymentService {
@@ -36,6 +37,11 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentIn
         paymentInfo.setSubject(subject);
         paymentInfo.setTotalAmount(orderInfo.getAmount());
         baseMapper.insert(paymentInfo);
+
+    }
+
+    @Override
+    public void paySuccess(String outTradeNo, Integer status, Map<String, String> resultMap) {
 
     }
 }
