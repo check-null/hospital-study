@@ -10,5 +10,9 @@ public interface AlipayService {
      */
     String createNative(Long orderId);
 
-    Map<String, String> queryPayStatus(Long orderId, String name);
+    /**
+     * 根据订单号去微信第三方查询支付状态
+     */
+    String queryPayStatus(Long orderId, String paymentType);
+
 }

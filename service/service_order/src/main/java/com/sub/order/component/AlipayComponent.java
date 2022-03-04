@@ -6,7 +6,9 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.AlipayConfig;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.sub.model.order.OrderInfo;
 import lombok.Data;
 
@@ -50,12 +52,7 @@ public class AlipayComponent {
     @Value("${alipay.url}")
     private String url;
 
-    /**
-     * 生成支付信息代码
-     *
-     * @return 支付信息代码
-     */
-    public String pay(OrderInfo order) {
+    private AlipayConfig getConfig() {
         AlipayConfig alipayConfig = new AlipayConfig();
         alipayConfig.setServerUrl(url);
         alipayConfig.setAppId(appId);
@@ -64,10 +61,20 @@ public class AlipayComponent {
         alipayConfig.setFormat("json");
         alipayConfig.setCharset("utf-8");
         alipayConfig.setSignType("RSA2");
+        return alipayConfig;
+    }
+
+    /**
+     * 生成支付信息代码
+     *
+     * @return 支付信息代码
+     */
+    public String pay(OrderInfo order) {
+
         String data = null;
 
         try {
-            AlipayClient alipayClient = new DefaultAlipayClient(alipayConfig);
+            AlipayClient alipayClient = new DefaultAlipayClient(getConfig());
             //创建API对应的request
             AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
             alipayRequest.setReturnUrl("");
@@ -83,7 +90,7 @@ public class AlipayComponent {
             bizContent.put("subject", subject);
             bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
             bizContent.put("qr_pay_mode", "4");
-            bizContent.put("qrcode_width", 100);
+            bizContent.put("qrcode_width", 200);
             alipayRequest.setBizContent(bizContent.toString());
 
             AlipayTradePagePayResponse response = alipayClient.pageExecute(alipayRequest);
@@ -98,5 +105,23 @@ public class AlipayComponent {
         }
 
         return data;
+    }
+
+
+    public String query(OrderInfo order) {
+        String query = null;
+        try {
+            AlipayClient alipayClient = new DefaultAlipayClient(getConfig());
+            AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+            JSONObject bizContent = new JSONObject();
+            bizContent.put("out_trade_no", order.getOutTradeNo());
+            request.setBizContent(bizContent.toString());
+            AlipayTradeQueryResponse response = alipayClient.execute(request);
+            query = response.getBody();
+        } catch (AlipayApiException e) {
+            e.printStackTrace();
+        }
+
+        return query;
     }
 }

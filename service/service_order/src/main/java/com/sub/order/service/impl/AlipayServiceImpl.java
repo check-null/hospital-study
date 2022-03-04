@@ -10,8 +10,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class AlipayServiceImpl implements AlipayService {
@@ -43,7 +41,9 @@ public class AlipayServiceImpl implements AlipayService {
     }
 
     @Override
-    public Map<String, String> queryPayStatus(Long orderId, String name) {
-        return null;
+    public String queryPayStatus(Long orderId, String paymentType) {
+        OrderInfo orderInfo = orderService.getById(orderId);
+        return alipayComponent.query(orderInfo);
     }
+
 }
