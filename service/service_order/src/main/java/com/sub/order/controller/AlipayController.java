@@ -61,4 +61,9 @@ public class AlipayController {
         return Result.ok().message("支付中");
     }
 
+    @GetMapping("/close/{orderId}")
+    public Result<Object> close(@PathVariable Long orderId) {
+        String close = alipayService.close(orderId);
+        return Result.ok(close);
+    }
 }

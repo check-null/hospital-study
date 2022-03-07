@@ -46,4 +46,11 @@ public class AlipayServiceImpl implements AlipayService {
         return alipayComponent.query(orderInfo);
     }
 
+    @Override
+    public String close(Long orderId) {
+        OrderInfo orderInfo = orderService.getById(orderId);
+        return alipayComponent.close(orderInfo);
+    }
+
+    
 }

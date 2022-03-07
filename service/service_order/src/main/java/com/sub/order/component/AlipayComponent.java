@@ -5,8 +5,10 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.AlipayConfig;
 import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.sub.model.order.OrderInfo;
@@ -123,5 +125,25 @@ public class AlipayComponent {
         }
 
         return query;
+    }
+
+    public String close(OrderInfo info) {
+        String query = null;
+        try {
+            AlipayClient client = new DefaultAlipayClient(getConfig());
+            AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
+            JSONObject bizContent = new JSONObject();
+            bizContent.put("trade_no", info.getOutTradeNo());
+            request.setBizContent(bizContent.toString());
+            AlipayTradeCloseResponse response = client.execute(request);
+            query = response.getBody();
+        } catch (AlipayApiException e) {
+            e.printStackTrace();
+        }
+        return query;
+    }
+
+    public boolean refund(Long orderId) {
+        return false;
     }
 }

@@ -15,4 +15,5 @@ public interface AlipayService {
      */
     String queryPayStatus(Long orderId, String paymentType);
 
+    String close(Long orderId);
 }
