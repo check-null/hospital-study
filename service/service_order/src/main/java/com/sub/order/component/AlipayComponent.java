@@ -8,9 +8,11 @@ import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
+import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.sub.model.order.OrderInfo;
 import lombok.Data;
 
@@ -88,7 +90,8 @@ public class AlipayComponent {
             // 金额
             bizContent.put("total_amount", order.getAmount().toString());
             // 订单标题
-            String subject = order.getReserveDate() + "就诊" + order.getDepname();
+            DateTime dateTime = new DateTime(order.getReserveDate());
+            String subject = dateTime.toString("yyyy-MM-dd") + "就诊" + order.getDepname();
             bizContent.put("subject", subject);
             bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
             bizContent.put("qr_pay_mode", "4");
@@ -143,7 +146,23 @@ public class AlipayComponent {
         return query;
     }
 
-    public boolean refund(Long orderId) {
-        return false;
+    public String refund(OrderInfo info) {
+        String body = null;
+        try {
+            AlipayClient alipayClient = new DefaultAlipayClient(getConfig());
+            AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
+            JSONObject bizContent = new JSONObject();
+            bizContent.put("trade_no", info.getOutTradeNo());
+            bizContent.put("refund_amount", info.getAmount());
+            bizContent.put("out_request_no", "HZ01RF001");
+
+            request.setBizContent(bizContent.toString());
+            AlipayTradeRefundResponse response = alipayClient.execute(request);
+            body = response.getBody();
+
+        } catch (AlipayApiException e) {
+            e.printStackTrace();
+        }
+        return body;
     }
 }

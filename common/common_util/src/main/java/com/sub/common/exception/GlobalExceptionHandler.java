@@ -1,7 +1,6 @@
 package com.sub.common.exception;
 
 import com.sub.common.result.Result;
-import com.sub.common.result.ResultCodeEnum;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,9 +20,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(YyghException.class)
-    public Result<Boolean> error(YyghException e) {
+    public Result<Object> error(YyghException e) {
         e.printStackTrace();
-        return Result.fail();
+        return Result.fail().code(e.getCode()).message(e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

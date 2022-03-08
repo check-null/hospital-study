@@ -63,7 +63,7 @@ public class AlipayController {
 
     @GetMapping("/close/{orderId}")
     public Result<Object> close(@PathVariable Long orderId) {
-        String close = alipayService.close(orderId);
+        Boolean close = alipayService.close(orderId);
         return Result.ok(close);
     }
 }

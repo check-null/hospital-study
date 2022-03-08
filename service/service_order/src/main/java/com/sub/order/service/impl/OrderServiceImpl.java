@@ -14,7 +14,6 @@ import com.sub.enums.OrderStatusEnum;
 import com.sub.hosp.client.HospitalFeignClient;
 import com.sub.model.order.OrderInfo;
 import com.sub.model.user.Patient;
-import com.sub.model.user.UserInfo;
 import com.sub.order.component.AlipayComponent;
 import com.sub.order.mapper.OrderMapper;
 import com.sub.order.service.OrderService;
@@ -107,7 +106,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         String sign = HttpRequestHelper.getSign(paramMap, signInfoVo.getSignKey());
         paramMap.put("sign", sign);
         JSONObject result = HttpRequestHelper.sendRequest(paramMap, signInfoVo.getApiUrl() + "/order/submitOrder");
-        // todo manager那可能有问题
+        // 需要启动manager
         if (result.getInteger("code") == 200) {
             JSONObject jsonObject = result.getJSONObject("data");
             //预约记录唯一标识（医院预约记录主键）

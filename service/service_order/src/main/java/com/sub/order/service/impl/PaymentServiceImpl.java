@@ -37,7 +37,7 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentIn
         QueryWrapper<PaymentInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("order_id", orderInfo.getId());
         queryWrapper.eq("payment_type", paymentType);
-        Integer count = baseMapper.selectCount(queryWrapper);
+        Long count = baseMapper.selectCount(queryWrapper);
         // 存在未完成的订单
         if (count > 0) {
             return;
@@ -79,7 +79,7 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentIn
         OrderInfo orderInfo = orderService.getById(paymentInfo.getOrderId());
         orderInfo.setOrderStatus(OrderStatusEnum.PAID.getStatus());
         orderService.updateById(orderInfo);
-        // 调用医院接口，通知更新支付状态
+        // 调用后台医院接口，通知更新支付状态
         SignInfoVo signInfoVo = hospitalFeignClient.getSignInfoVo(orderInfo.getHoscode());
         if (null == signInfoVo) {
             throw new YyghException(ResultCodeEnum.PARAM_ERROR);
@@ -94,7 +94,6 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentIn
         if (result.getInteger("code") != 200) {
             throw new YyghException(result.getString("message"), ResultCodeEnum.FAIL.getCode());
         }
-
     }
 
     @Override
@@ -104,7 +103,6 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentIn
         queryWrapper.eq("payment_type", paymentType);
         return baseMapper.selectOne(queryWrapper);
     }
-
 
 
     /**

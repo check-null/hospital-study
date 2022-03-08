@@ -15,5 +15,7 @@ public interface AlipayService {
      */
     String queryPayStatus(Long orderId, String paymentType);
 
-    String close(Long orderId);
+    Boolean close(Long orderId);
+
+    Map<String, Object> refund(Long orderId);
 }
