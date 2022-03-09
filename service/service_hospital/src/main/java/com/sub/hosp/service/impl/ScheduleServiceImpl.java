@@ -2,7 +2,9 @@ package com.sub.hosp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sub.common.exception.YyghException;
+import com.sub.common.helper.HttpRequestHelper;
 import com.sub.common.result.ResultCodeEnum;
 import com.sub.hosp.repository.ScheduleRepository;
 import com.sub.hosp.service.DepartmentService;
@@ -15,6 +17,7 @@ import com.sub.model.hosp.Schedule;
 import com.sub.vo.hosp.BookingScheduleRuleVo;
 import com.sub.vo.hosp.ScheduleOrderVo;
 import com.sub.vo.hosp.ScheduleQueryVo;
+import com.sub.vo.order.SignInfoVo;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
@@ -332,6 +335,23 @@ public class ScheduleServiceImpl implements ScheduleService {
     public void update(Schedule schedule) {
         schedule.setUpdateTime(new Date());
         scheduleRepository.save(schedule);
+    }
+
+    @Override
+    public Boolean addSchedule(Schedule schedule) {
+        schedule.setCreateTime(new Date());
+        schedule.setIsDeleted(0);
+        String jsonString = JSONObject.toJSONString(schedule);
+        HashMap paramMap = JSONObject.parseObject(jsonString, HashMap.class);
+        // todo 参数可能有问题 There was an unexpected error (type=null, status=null)
+        JSONObject result = HttpRequestHelper.sendRequest(paramMap, "http://localhost:9998/schedule/addSchedule");
+        Integer i = 200;
+        if (!i.equals(result.getInteger("code"))) {
+            throw new YyghException(result.getString("message"), ResultCodeEnum.FAIL.getCode());
+        } else {
+            Schedule save = scheduleRepository.save(schedule);
+            return save.getHosScheduleId() != null;
+        }
     }
 
     private IPage<Date> getListDate(Integer page, Integer limit, BookingRule bookingRule) {

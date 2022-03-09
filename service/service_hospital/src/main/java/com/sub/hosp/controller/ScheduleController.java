@@ -3,11 +3,9 @@ package com.sub.hosp.controller;
 import com.sub.common.result.Result;
 import com.sub.hosp.service.ScheduleService;
 import com.sub.model.hosp.Schedule;
+import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -39,5 +37,12 @@ public class ScheduleController {
 
         List<Schedule> list = scheduleService.getDetailSchedule(hoscode, depcode, workDate);
         return Result.ok(list);
+    }
+
+    @ApiModelProperty("添加排班")
+    @PostMapping("/add")
+    public Result<Object> addSchedule(@RequestBody Schedule schedule) {
+        Boolean add = scheduleService.addSchedule(schedule);
+        return Result.ok(add);
     }
 }
