@@ -2,7 +2,6 @@ package com.sub.hosp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sub.common.exception.YyghException;
 import com.sub.common.helper.HttpRequestHelper;
 import com.sub.common.result.ResultCodeEnum;
@@ -17,7 +16,6 @@ import com.sub.model.hosp.Schedule;
 import com.sub.vo.hosp.BookingScheduleRuleVo;
 import com.sub.vo.hosp.ScheduleOrderVo;
 import com.sub.vo.hosp.ScheduleQueryVo;
-import com.sub.vo.order.SignInfoVo;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
@@ -164,7 +162,9 @@ public class ScheduleServiceImpl implements ScheduleService {
             实际组装条件 {"find": "Schedule", "filter": {"hoscode": "1000_0", "depcode": "200040878", "workDate": {"$date": "2021-01-26T16:00:00Z"}}, "$db": "yygh_hosp"}
             原本的日期会莫名其妙的-1, 导致查到前一天的数据
          */
-        List<Schedule> list = scheduleRepository.findScheduleByHoscodeAndDepcodeAndWorkDate(hoscode, depcode, new DateTime(workDate).toDate());
+        DateTime dateTime = new DateTime(workDate);
+        Date date = dateTime.plusHours(8).toDate();
+        List<Schedule> list = scheduleRepository.findScheduleByHoscodeAndDepcodeAndWorkDate(hoscode, depcode, date);
         list.forEach(this::packageSchedule);
         return list;
     }
@@ -343,12 +343,19 @@ public class ScheduleServiceImpl implements ScheduleService {
         schedule.setIsDeleted(0);
         String jsonString = JSONObject.toJSONString(schedule);
         HashMap paramMap = JSONObject.parseObject(jsonString, HashMap.class);
-        // todo 参数可能有问题 There was an unexpected error (type=null, status=null)
+        paramMap.remove("param");
+
         JSONObject result = HttpRequestHelper.sendRequest(paramMap, "http://localhost:9998/schedule/addSchedule");
         Integer i = 200;
-        if (!i.equals(result.getInteger("code"))) {
+        String id = result.getString("data");
+        if (!i.equals(result.getInteger("code")) || StringUtils.isEmpty(id)) {
             throw new YyghException(result.getString("message"), ResultCodeEnum.FAIL.getCode());
         } else {
+            schedule.setHosScheduleId(id);
+            DateTime dateTime = new DateTime(schedule.getCreateTime()).plusHours(8);
+            DateTime workDate = new DateTime(schedule.getWorkDate()).plusHours(8);
+            schedule.setCreateTime(dateTime.toDate());
+            schedule.setWorkDate(workDate.toDate());
             Schedule save = scheduleRepository.save(schedule);
             return save.getHosScheduleId() != null;
         }

@@ -7,9 +7,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 /**
  * <p>
  * Schedule
@@ -21,7 +18,7 @@ import java.util.Date;
 @Data
 @ApiModel(description = "Schedule")
 @TableName("schedule")
-public class Schedule extends BaseNoAutoEntity {
+public class Schedule extends BaseEntity {
 
 	private static final long serialVersionUID = 1L;
 
