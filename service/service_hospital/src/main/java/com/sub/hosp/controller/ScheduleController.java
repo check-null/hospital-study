@@ -5,9 +5,11 @@ import com.sub.hosp.service.ScheduleService;
 import com.sub.model.hosp.Schedule;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
+import org.joda.time.DateTime;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +44,9 @@ public class ScheduleController {
     @ApiModelProperty("添加排班")
     @PostMapping("/add")
     public Result<Object> addSchedule(@RequestBody Schedule schedule) {
+        Date workDate = schedule.getWorkDate();
+        Date date = new DateTime(workDate).plusDays(1).toDate();
+        schedule.setWorkDate(date);
         Boolean add = scheduleService.addSchedule(schedule);
         return Result.ok(add);
     }
