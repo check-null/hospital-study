@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/order/alipay")
@@ -55,7 +54,9 @@ public class AlipayController {
         String tradeStatus = queryResponse.getString("trade_status");
         if (AlipayStatusEnum.TRADE_SUCCESS.getStatus().equals(tradeStatus)) {
             String outTradeNo = queryResponse.getString("out_trade_no");
-            paymentService.paySuccess(outTradeNo, PaymentTypeEnum.ALI_PAY.getStatus(), null);
+            String tradeNo = queryResponse.getString("trade_no");
+
+            paymentService.paySuccess(outTradeNo, PaymentTypeEnum.ALI_PAY.getStatus(), tradeNo);
             return Result.ok().message("支付成功");
         }
         return Result.ok().message("支付中");
@@ -63,7 +64,6 @@ public class AlipayController {
 
     @GetMapping("/close/{orderId}")
     public Result<Object> close(@PathVariable Long orderId) {
-        Boolean close = alipayService.close(orderId);
-        return Result.ok(close);
+        return Result.ok();
     }
 }

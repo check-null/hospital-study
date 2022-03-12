@@ -14,9 +14,10 @@ import com.sub.enums.OrderStatusEnum;
 import com.sub.hosp.client.HospitalFeignClient;
 import com.sub.model.order.OrderInfo;
 import com.sub.model.user.Patient;
-import com.sub.order.component.AlipayComponent;
 import com.sub.order.mapper.OrderMapper;
+import com.sub.order.service.AlipayService;
 import com.sub.order.service.OrderService;
+import com.sub.order.service.PaymentService;
 import com.sub.user.client.PatientFeignClient;
 import com.sub.vo.hosp.ScheduleOrderVo;
 import com.sub.vo.msm.MsmVo;
@@ -32,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 @Service
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implements OrderService {
@@ -47,7 +47,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
     RabbitService rabbitService;
 
     @Resource
-    AlipayComponent alipayComponent;
+    AlipayService alipayService;
+
+    @Resource
+    PaymentService paymentService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -221,6 +224,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Boolean cancelOrder(Long orderId) {
         OrderInfo orderInfo = this.getById(orderId);
         //当前时间大约退号时间，不能取消预约
@@ -244,6 +248,26 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         if (result.getInteger("code") != 200) {
             throw new YyghException(result.getString("message"), ResultCodeEnum.FAIL.getCode());
         } else {
+            // 如果是已支付则需要退款
+            Integer success = 10000;
+            if (OrderStatusEnum.PAID.getStatus().equals(orderInfo.getOrderStatus())) {
+                paymentService.refund(orderId);
+                Map<String, Object> refund = alipayService.refund(orderId);
+                Integer code = (Integer) refund.get("code");
+                if (!success.equals(code)) {
+                    String msg = (String) refund.get("msg");
+                    throw new YyghException(msg, code);
+                }
+            } else {
+                // 未支付则直接关闭订单
+                String close = alipayService.close(orderInfo);
+                JSONObject closeJson = JSONObject.parseObject(close).getJSONObject("alipay_trade_close_response");
+                Integer code = closeJson.getInteger("code");
+                if (!success.equals(code)) {
+                    String msg = closeJson.getString("msg");
+                    throw new YyghException(msg, code);
+                }
+            }
             //更改订单状态
             orderInfo.setOrderStatus(OrderStatusEnum.CANCLE.getStatus());
             this.updateById(orderInfo);

@@ -60,7 +60,7 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentIn
      * 支付成功
      */
     @Override
-    public void paySuccess(String outTradeNo, Integer paymentType, Map<String, String> paramMap) {
+    public void paySuccess(String outTradeNo, Integer paymentType, String tradeNo) {
         PaymentInfo paymentInfo = this.getPaymentInfo(outTradeNo, paymentType);
         if (null == paymentInfo) {
             throw new YyghException(ResultCodeEnum.PARAM_ERROR);
@@ -71,9 +71,9 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentIn
         //修改支付状态
         PaymentInfo paymentInfoUpd = new PaymentInfo();
         paymentInfoUpd.setPaymentStatus(PaymentStatusEnum.PAID.getStatus());
-        paymentInfoUpd.setTradeNo(paramMap.get("transaction_id"));
+        paymentInfoUpd.setTradeNo(tradeNo);
         paymentInfoUpd.setCallbackTime(new Date());
-        paymentInfoUpd.setCallbackContent(paramMap.toString());
+//        paymentInfoUpd.setCallbackContent(paramMap.toString());
         this.updatePaymentInfo(outTradeNo, paymentInfoUpd);
         //修改订单状态
         OrderInfo orderInfo = orderService.getById(paymentInfo.getOrderId());
@@ -102,6 +102,20 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentInfoMapper, PaymentIn
         queryWrapper.eq("order_id", orderId);
         queryWrapper.eq("payment_type", paymentType);
         return baseMapper.selectOne(queryWrapper);
+    }
+
+    @Override
+    public Boolean refund(Long orderId) {
+        QueryWrapper<PaymentInfo> wrapper = new QueryWrapper<>();
+        wrapper.eq("order_id", orderId);
+        PaymentInfo paymentInfo = new PaymentInfo();
+        paymentInfo.setPaymentStatus(OrderStatusEnum.CANCLE.getStatus());
+
+        int update = baseMapper.update(paymentInfo, wrapper);
+        if (update < 1) {
+            throw new YyghException(ResultCodeEnum.CANCEL_ORDER_FAIL);
+        }
+        return true;
     }
 
 

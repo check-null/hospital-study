@@ -1,5 +1,7 @@
 package com.sub.order.service;
 
+import com.sub.model.order.OrderInfo;
+
 import java.util.Map;
 
 public interface AlipayService {
@@ -15,7 +17,7 @@ public interface AlipayService {
      */
     String queryPayStatus(Long orderId, String paymentType);
 
-    Boolean close(Long orderId);
+    String close(OrderInfo orderInfo);
 
     Map<String, Object> refund(Long orderId);
 }

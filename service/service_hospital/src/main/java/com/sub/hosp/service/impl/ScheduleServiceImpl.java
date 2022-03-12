@@ -29,6 +29,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -344,6 +346,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public Boolean addSchedule(Schedule schedule) {
         schedule.setCreateTime(new Date());
+        BigDecimal bigDecimal = schedule.getAmount().setScale(2, RoundingMode.HALF_EVEN);
+        schedule.setAmount(bigDecimal);
         schedule.setIsDeleted(0);
         String jsonString = JSONObject.toJSONString(schedule);
         HashMap paramMap = JSONObject.parseObject(jsonString, HashMap.class);

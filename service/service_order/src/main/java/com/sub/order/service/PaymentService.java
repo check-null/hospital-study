@@ -4,8 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.sub.model.order.OrderInfo;
 import com.sub.model.order.PaymentInfo;
 
-import java.util.Map;
-
 public interface PaymentService extends IService<PaymentInfo> {
 
     /**
@@ -15,7 +13,7 @@ public interface PaymentService extends IService<PaymentInfo> {
      */
     void savePaymentInfo(OrderInfo order, Integer paymentType);
 
-    void paySuccess(String outTradeNo, Integer status, Map<String, String> resultMap);
+    void paySuccess(String outTradeNo, Integer status, String tradeNo);
 
     /**
      * 获取支付记录
@@ -25,4 +23,5 @@ public interface PaymentService extends IService<PaymentInfo> {
      */
     PaymentInfo getPaymentInfo(Long orderId, Integer paymentType);
 
+    Boolean refund(Long orderId);
 }

@@ -14,8 +14,8 @@ import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.sub.model.order.OrderInfo;
+import com.sub.model.order.PaymentInfo;
 import lombok.Data;
-
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -73,7 +73,7 @@ public class AlipayComponent {
      *
      * @return 支付信息代码
      */
-    public String pay(OrderInfo order) {
+    public String createOrder(OrderInfo order) {
 
         String data = null;
 
@@ -81,8 +81,8 @@ public class AlipayComponent {
             AlipayClient alipayClient = new DefaultAlipayClient(getConfig());
             //创建API对应的request
             AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
-            alipayRequest.setReturnUrl("");
-            alipayRequest.setNotifyUrl("http://admin.shop.com/api/order/alipay/notify");
+            alipayRequest.setReturnUrl(returnUrl);
+            alipayRequest.setNotifyUrl(notifyUrl);
             //填充业务参数
             JSONObject bizContent = new JSONObject();
             // 订单号
@@ -130,13 +130,14 @@ public class AlipayComponent {
         return query;
     }
 
-    public String close(OrderInfo info) {
+    public String close(PaymentInfo info) {
         String query = null;
         try {
             AlipayClient client = new DefaultAlipayClient(getConfig());
             AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
             JSONObject bizContent = new JSONObject();
-            bizContent.put("trade_no", info.getOutTradeNo());
+            bizContent.put("trade_no", info.getTradeNo());
+            bizContent.put("out_trade_no", info.getOutTradeNo());
             request.setBizContent(bizContent.toString());
             AlipayTradeCloseResponse response = client.execute(request);
             query = response.getBody();
@@ -146,14 +147,15 @@ public class AlipayComponent {
         return query;
     }
 
-    public String refund(OrderInfo info) {
+    public String refund(PaymentInfo info) {
         String body = null;
         try {
             AlipayClient alipayClient = new DefaultAlipayClient(getConfig());
             AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
             JSONObject bizContent = new JSONObject();
-            bizContent.put("trade_no", info.getOutTradeNo());
-            bizContent.put("refund_amount", info.getAmount());
+            bizContent.put("trade_no", info.getTradeNo());
+            bizContent.put("out_trade_no", info.getOutTradeNo());
+            bizContent.put("refund_amount", info.getTotalAmount());
             bizContent.put("out_request_no", "HZ01RF001");
 
             request.setBizContent(bizContent.toString());

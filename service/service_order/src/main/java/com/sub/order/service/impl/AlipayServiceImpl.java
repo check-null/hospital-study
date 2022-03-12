@@ -1,8 +1,6 @@
 package com.sub.order.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.sub.common.exception.YyghException;
-import com.sub.common.result.ResultCodeEnum;
 import com.sub.enums.OrderStatusEnum;
 import com.sub.enums.PaymentTypeEnum;
 import com.sub.enums.RefundStatusEnum;
@@ -14,7 +12,6 @@ import com.sub.order.service.AlipayService;
 import com.sub.order.service.OrderService;
 import com.sub.order.service.PaymentService;
 import com.sub.order.service.RefundInfoService;
-import org.joda.time.DateTime;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +54,7 @@ public class AlipayServiceImpl implements AlipayService {
         orderService.updateById(order);
         // 生成交易form
         // todo 先判断结果再保存记录
-        return alipayComponent.pay(order);
+        return alipayComponent.createOrder(order);
     }
 
     @Override
@@ -67,16 +64,9 @@ public class AlipayServiceImpl implements AlipayService {
     }
 
     @Override
-    public Boolean close(Long orderId) {
-        OrderInfo orderInfo = orderService.getById(orderId);
-        DateTime quitTime = new DateTime(orderInfo.getQuitTime());
-        if (quitTime.isBeforeNow()) {
-            throw new YyghException(ResultCodeEnum.CANCEL_ORDER_NO);
-        }
-
-        orderInfo.setOrderStatus(-1);
-        alipayComponent.close(orderInfo);
-        return orderService.updateById(orderInfo);
+    public String close(OrderInfo orderInfo) {
+        PaymentInfo paymentInfo = paymentService.getPaymentInfo(orderInfo.getId(), PaymentTypeEnum.ALI_PAY.getStatus());
+        return alipayComponent.close(paymentInfo);
     }
 
     @Override
@@ -84,26 +74,24 @@ public class AlipayServiceImpl implements AlipayService {
     public Map<String, Object> refund(Long orderId) {
         // 查支付记录
         PaymentInfo paymentInfoQuery = paymentService.getPaymentInfo(orderId, PaymentTypeEnum.ALI_PAY.getStatus());
+
         // 判断是否退款成功
         RefundInfo refundInfo = refundInfoService.saveRefundInfo(paymentInfoQuery);
         HashMap<String, Object> map = new HashMap<>(8);
         map.put("code", 10000);
         map.put("msg", "Success");
         if (refundInfo.getRefundStatus().intValue() == RefundStatusEnum.REFUND.getStatus().intValue()) {
-
             return map;
         }
         // 支付宝退款
-        OrderInfo orderInfo = new OrderInfo();
-        orderInfo.setAmount(paymentInfoQuery.getTotalAmount());
-        orderInfo.setOutTradeNo(paymentInfoQuery.getOutTradeNo());
-        String refund = alipayComponent.refund(orderInfo);
+        String refund = alipayComponent.refund(paymentInfoQuery);
 
-        JSONObject alipayJson = JSONObject.parseObject(refund);
+        JSONObject alipayJson = JSONObject.parseObject(refund).getJSONObject("alipay_trade_refund_response");
         // 判断退款状态
         Integer code = alipayJson.getInteger("code");
         if (code.equals(10000)) {
             refundInfo.setCallbackTime(new Date());
+            refundInfo.setTradeNo(alipayJson.getString("out_trade_no"));
             refundInfo.setTradeNo(alipayJson.getString("trade_no"));
             refundInfo.setRefundStatus(RefundStatusEnum.REFUND.getStatus());
             refundInfo.setCallbackContent(refund);
@@ -111,10 +99,9 @@ public class AlipayServiceImpl implements AlipayService {
             return map;
         }
 
-        HashMap<String, Object> hashMap = new HashMap<>(8);
         map.put("code", code);
         map.put("msg", alipayJson.getString("msg"));
-        return hashMap;
+        return map;
     }
 
 
