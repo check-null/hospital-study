@@ -50,7 +50,7 @@ public class AlipayServiceImpl implements AlipayService {
         OrderInfo order = orderService.getById(orderId);
         // 保存交易记录
         paymentService.savePaymentInfo(order, PaymentTypeEnum.ALI_PAY.getStatus());
-        order.setOrderStatus(OrderStatusEnum.PAID.getStatus());
+        order.setOrderStatus(OrderStatusEnum.UNPAID.getStatus());
         orderService.updateById(order);
         // 生成交易form
         // todo 先判断结果再保存记录

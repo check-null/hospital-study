@@ -8,12 +8,11 @@ import com.sub.order.service.AlipayService;
 import com.sub.order.service.PaymentService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/order/alipay")
@@ -32,8 +31,8 @@ public class AlipayController {
     }
 
     @GetMapping("/notify")
-    public Result<Object> alipayNotify() {
-
+    public Result<Object> alipayNotify(HttpServletRequest request) {
+        request.getParameterMap().forEach((k,v) -> System.out.println("key: " + k + " value: " + Arrays.toString(v)));
         return Result.ok();
     }
 
