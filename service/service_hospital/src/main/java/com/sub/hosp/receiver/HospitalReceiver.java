@@ -34,6 +34,9 @@ public class HospitalReceiver {
     public void receiver(OrderMqVo orderMqVo, Message message, Channel channel) throws IOException {
         //下单成功更新预约数
         Schedule schedule = scheduleService.getByScheduleId(orderMqVo.getScheduleId());
+        if (schedule == null) {
+            return;
+        }
         schedule.setReservedNumber(orderMqVo.getReservedNumber());
         schedule.setAvailableNumber(orderMqVo.getAvailableNumber());
         scheduleService.update(schedule);

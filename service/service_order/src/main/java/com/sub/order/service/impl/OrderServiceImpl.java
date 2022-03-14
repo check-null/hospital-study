@@ -291,6 +291,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
         return true;
     }
 
+    @Override
+    public OrderInfo getOrderByOutTradeNo(String outTradeNo) {
+        QueryWrapper<OrderInfo> wrapper = new QueryWrapper<>();
+        wrapper.eq("out_trade_no", outTradeNo);
+        return baseMapper.selectOne(wrapper);
+    }
 
     private OrderInfo packOrderInfo(OrderInfo orderInfo) {
         orderInfo.getParam().put("orderStatusString", OrderStatusEnum.getStatusNameByStatus(orderInfo.getOrderStatus()));

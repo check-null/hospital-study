@@ -20,4 +20,6 @@ public interface AlipayService {
     String close(OrderInfo orderInfo);
 
     Map<String, Object> refund(Long orderId);
+
+    boolean payQuery(Map<String, String> map);
 }

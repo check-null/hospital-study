@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/order/alipay")
@@ -30,11 +31,23 @@ public class AlipayController {
         return Result.ok(pay);
     }
 
-    @GetMapping("/notify")
+    @PostMapping("/notify")
     public Result<Object> alipayNotify(HttpServletRequest request) {
-        request.getParameterMap().forEach((k,v) -> System.out.println("key: " + k + " value: " + Arrays.toString(v)));
-        return Result.ok();
+        Map<String, String[]> map = request.getParameterMap();
+        return Result.ok(map);
     }
+
+    @GetMapping("/return")
+    public String alipayReturn(HttpServletRequest request) {
+        Map<String, String[]> map = request.getParameterMap();
+        HashMap<String, String> hashMap = new HashMap<>(map.size());
+        map.forEach((k,v) -> hashMap.put(k, v[0]));
+        boolean query = alipayService.payQuery(hashMap);
+        String result = "<script>location.reload()</script>";
+        return query ? result : "失败";
+    }
+
+
 
     @ApiOperation(value = "查询支付状态")
     @GetMapping("/queryPayStatus/{orderId}")

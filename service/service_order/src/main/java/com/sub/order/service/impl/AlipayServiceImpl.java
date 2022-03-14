@@ -104,5 +104,28 @@ public class AlipayServiceImpl implements AlipayService {
         return map;
     }
 
+    @Override
+    public boolean payQuery(Map<String, String> map) {
+        String outTradeNo = map.get("out_trade_no");
+        if (outTradeNo == null) {
+            return false;
+        }
+        OrderInfo order = orderService.getOrderByOutTradeNo(outTradeNo);
+        if (order == null) {
+            return false;
+        }
+        String query = alipayComponent.query(order);
+        JSONObject jsonObject = JSONObject.parseObject(query);
+        System.out.println("jsonObject = " + jsonObject);
+        JSONObject alipayJson = jsonObject.getJSONObject("alipay_trade_query_response");
+        Integer code = alipayJson.getInteger("code");
+        Integer i = 10000;
+        if (!i.equals(code)) {
+            return false;
+        }
+        String tradeNo = alipayJson.getString("trade_no");
+        paymentService.paySuccess(outTradeNo, PaymentTypeEnum.ALI_PAY.getStatus(), tradeNo);
+        return true;
+    }
 
 }
