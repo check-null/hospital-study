@@ -9,7 +9,7 @@ public enum AlipayStatusEnum {
     /**
      * 未付款交易超时关闭，或支付完成后全额退款
      */
-    TRADE_CLOSED("WAIT_BUYER_PAY"),
+    TRADE_CLOSED("TRADE_CLOSED"),
     /**
      * 交易支付成功
      */

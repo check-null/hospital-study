@@ -41,12 +41,11 @@ public class AlipayController {
     public String alipayReturn(HttpServletRequest request) {
         Map<String, String[]> map = request.getParameterMap();
         HashMap<String, String> hashMap = new HashMap<>(map.size());
-        map.forEach((k,v) -> hashMap.put(k, v[0]));
+        map.forEach((k, v) -> hashMap.put(k, v[0]));
         boolean query = alipayService.payQuery(hashMap);
-        String result = "<script>location.reload()</script>";
+        String result = "<script>window.parent.location.reload()</script>";
         return query ? result : "失败";
     }
-
 
 
     @ApiOperation(value = "查询支付状态")

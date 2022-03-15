@@ -70,6 +70,7 @@ public class AlipayComponent {
 
     /**
      * 生成支付信息代码
+     * https://opendocs.alipay.com/open/028r8t
      *
      * @return 支付信息代码
      */
@@ -113,6 +114,13 @@ public class AlipayComponent {
     }
 
 
+    /**
+     * 支付宝订单查询
+     * https://opendocs.alipay.com/open/028woa
+     *
+     * @param order
+     * @return
+     */
     public String query(OrderInfo order) {
         String query = null;
         try {
@@ -130,6 +138,13 @@ public class AlipayComponent {
         return query;
     }
 
+    /**
+     * 关闭订单
+     * https://opendocs.alipay.com/open/028wob
+     *
+     * @param info
+     * @return
+     */
     public String close(PaymentInfo info) {
         String query = null;
         try {
@@ -147,6 +162,13 @@ public class AlipayComponent {
         return query;
     }
 
+    /**
+     * 支付宝退款
+     * https://opendocs.alipay.com/open/028sm9
+     *
+     * @param info
+     * @return
+     */
     public String refund(PaymentInfo info) {
         String body = null;
         try {

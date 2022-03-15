@@ -57,10 +57,11 @@ public class HospitalServiceImpl implements HospitalService {
         //处理就诊人业务
         Long patientId = this.savePatient(patient);
 
-        Map<String, Object> resultMap = new HashMap<>();
-        int availableNumber = schedule.getAvailableNumber() - 1;
+        Map<String, Object> resultMap = new HashMap<>(16);
+        //先判断是否可以预约再将预约数-1
+        int availableNumber = schedule.getAvailableNumber();
         if (availableNumber > 0) {
-            schedule.setAvailableNumber(availableNumber);
+            schedule.setAvailableNumber(availableNumber - 1);
             hospitalMapper.updateById(schedule);
 
             //记录预约记录
@@ -85,10 +86,8 @@ public class HospitalServiceImpl implements HospitalService {
             resultMap.put("number", number);
             //取号时间
             resultMap.put("fetchTime", reserveDate + " 09:00前");
-            ;
             //取号地址
             resultMap.put("fetchAddress", "一层114窗口");
-            ;
             //排班可预约数
             resultMap.put("reservedNumber", schedule.getReservedNumber());
             //排班剩余预约数
