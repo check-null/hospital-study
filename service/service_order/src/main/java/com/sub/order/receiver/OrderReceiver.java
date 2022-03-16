@@ -1,23 +1,22 @@
 package com.sub.order.receiver;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alipay.api.AlipayApiException;
 import com.rabbitmq.client.Channel;
-import com.sub.enums.AlipayStatusEnum;
+import com.sub.common.rabbit.constant.MqConst;
 import com.sub.model.order.OrderInfo;
-import com.sub.model.order.PaymentInfo;
-import com.sub.order.component.AlipayComponent;
 import com.sub.order.service.OrderService;
+import org.joda.time.DateTime;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Date;
 
 @Component
 public class OrderReceiver {
-
-    @Resource
-    AlipayComponent alipayComponent;
 
     @Resource
     OrderService orderService;
@@ -29,34 +28,19 @@ public class OrderReceiver {
      * @param message
      * @param channel
      */
-    public void orderTimeout(OrderInfo order, Message message, Channel channel) throws AlipayApiException {
-        if (order == null) {
-            return;
-        }
-        // 先查询支付状态
-        String queryString = alipayComponent.query(order);
-        JSONObject jsonQuery = JSONObject.parseObject(queryString);
-        JSONObject alipayQuery = jsonQuery.getJSONObject("alipay_trade_query_response");
-        Integer i = 10000;
-        Integer code = alipayQuery.getInteger("code");
-        if (!i.equals(code)) {
-            throw new AlipayApiException("订单查询失败: " + alipayQuery.toString());
-        }
-        // 等待付款阶段
-        String tradeStatus = alipayQuery.getString("trade_status");
-        if (AlipayStatusEnum.WAIT_BUYER_PAY.getStatus().equals(tradeStatus)) {
-            // 关闭订单
-            PaymentInfo paymentInfo = new PaymentInfo();
-            paymentInfo.setOutTradeNo(order.getOutTradeNo());
-            String closeString = alipayComponent.close(paymentInfo);
-            JSONObject jsonClose = JSONObject.parseObject(closeString);
-            JSONObject alipayClose = jsonClose.getJSONObject("alipay_trade_close_response");
-            Integer closeInteger = alipayClose.getInteger("code");
-            if (!i.equals(closeInteger)) {
-                throw new AlipayApiException("订单关闭失败: " + alipayClose.toString());
-            }
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = MqConst.ORDER_DELAY_QUEUE, durable = "true"),
+            exchange = @Exchange(value = MqConst.EXCHANGE_DIRECT_DELAY),
+            key = {MqConst.ROUTING_DELAY_ORDER}
+    ))
+    public void orderTimeout(OrderInfo order, Message message, Channel channel) {
+        String now = new DateTime().toString("yyyy-MM-dd HH:mm:ss");
+        System.out.println(now + " 消费队列: " + order);
+        // 预约后xx分钟后未支付直接关闭订单
+        if (order != null) {
             // 关闭订单
             order.setOrderStatus(-1);
+            order.setUpdateTime(new Date());
             orderService.updateById(order);
         }
 

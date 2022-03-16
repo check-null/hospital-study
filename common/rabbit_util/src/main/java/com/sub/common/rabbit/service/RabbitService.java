@@ -26,4 +26,11 @@ public class RabbitService {
         return true;
     }
 
+    public void delayCancelOrder(String exchange, String routingKey, Object obj) {
+        rabbitTemplate.convertAndSend(exchange, routingKey, obj, message -> {
+            message.getMessageProperties().setExpiration("60000");
+            return message;
+        });
+    }
+
 }

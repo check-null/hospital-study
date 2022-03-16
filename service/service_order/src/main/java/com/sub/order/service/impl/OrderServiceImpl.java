@@ -156,7 +156,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
 
             orderMqVo.setMsmVo(msmVo);
             rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_ORDER, MqConst.ROUTING_ORDER, orderMqVo);
-
+            String now = new DateTime().toString("yyyy-MM-dd HH:mm:ss");
+            System.out.println(now + " 发送延迟队列");
+            rabbitService.delayCancelOrder(MqConst.EXCHANGE_DIRECT_DELAY,MqConst.ROUTING_DELAY_ORDER, orderInfo);
         } else {
             throw new YyghException(result.getString("message"), ResultCodeEnum.FAIL.getCode());
         }

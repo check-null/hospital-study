@@ -19,4 +19,10 @@ public class MqConst {
      * 队列
      */
     public static final String QUEUE_MSM_ITEM = "queue.msm.item";
+    /**
+     * 延迟队列
+     */
+    public static final String ORDER_DELAY_QUEUE = "order.delay.queue";
+    public static final String ROUTING_DELAY_ORDER = "order.delay.item";
+    public static final String EXCHANGE_DIRECT_DELAY = "exchange.direct.delay";
 }

@@ -97,6 +97,9 @@ public class AlipayComponent {
             bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
             bizContent.put("qr_pay_mode", "4");
             bizContent.put("qrcode_width", 200);
+            String timeExpire = new DateTime().minusDays(15).toString("yyyy-MM-dd HH:mm:ss");
+            // 过期时间应该由当前剩余时间来决定
+            bizContent.put("time_expire", timeExpire);
             alipayRequest.setBizContent(bizContent.toString());
 
             AlipayTradePagePayResponse response = alipayClient.pageExecute(alipayRequest);
