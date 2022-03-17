@@ -25,4 +25,9 @@ public class MqConst {
     public static final String ORDER_DELAY_QUEUE = "order.delay.queue";
     public static final String ROUTING_DELAY_ORDER = "order.delay.item";
     public static final String EXCHANGE_DIRECT_DELAY = "exchange.direct.delay";
+
+
+    public static final String DELAYED_QUEUE_NAME = "delayed.queue";
+    public static final String DELAYED_EXCHANGE_NAME = "delayed.exchange";
+    public static final String DELAYED_ROUTING_KEY = "delayed.routingkey";
 }

@@ -1,5 +1,6 @@
 package com.sub.common.rabbit.service;
 
+import com.sub.common.rabbit.constant.MqConst;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +27,9 @@ public class RabbitService {
         return true;
     }
 
-    public void delayCancelOrder(String exchange, String routingKey, Object obj) {
-        rabbitTemplate.convertAndSend(exchange, routingKey, obj, message -> {
-            message.getMessageProperties().setExpiration("60000");
+    public void delayCancelOrder(Object obj, Integer ttl) {
+        rabbitTemplate.convertAndSend(MqConst.DELAYED_EXCHANGE_NAME, MqConst.DELAYED_ROUTING_KEY, obj, message -> {
+            message.getMessageProperties().setDelay(ttl);
             return message;
         });
     }
